@@ -5,7 +5,9 @@ import { DayContent, DayPickerProps } from 'react-day-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { explainHoliday } from '@/ai/flows/explain-holiday-flow';
-import { Sparkles } from 'lucide-react';
+import { generateSpeech } from '@/ai/flows/text-to-speech-flow';
+import { LoaderCircle, Sparkles, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 import { Holiday } from '@/types/holiday';
 import { Calendar } from '@/components/ui/calendar';
@@ -20,6 +22,8 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
   const [selectedHoliday, setSelectedHoliday] = React.useState<Holiday | null>(null);
   const [explanation, setExplanation] = React.useState('');
   const [isGenerating, setIsGenerating] = React.useState(false);
+  const [audioUrl, setAudioUrl] = React.useState<string | null>(null);
+  const [isGeneratingAudio, setIsGeneratingAudio] = React.useState(false);
 
   const parsedHolidays = React.useMemo(() => {
     return holidays.map(h => ({
@@ -34,6 +38,8 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     setIsDialogOpen(true);
     setIsGenerating(true);
     setExplanation('');
+    setAudioUrl(null);
+    setIsGeneratingAudio(false);
 
     try {
       const result = await explainHoliday({ holidayName: holiday.keterangan });
@@ -45,6 +51,23 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       setIsGenerating(false);
     }
   };
+
+  const handleListenClick = async () => {
+    if (!explanation || isGeneratingAudio || isGenerating) return;
+
+    setIsGeneratingAudio(true);
+    setAudioUrl(null);
+    try {
+      const result = await generateSpeech({ text: explanation });
+      setAudioUrl(result.audioUrl);
+    } catch (error) {
+      console.error("Gagal menghasilkan audio:", error);
+      // You could add a toast notification here to inform the user.
+    } finally {
+      setIsGeneratingAudio(false);
+    }
+  };
+
 
   const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {
     const dayDateString = dayProps.date.toDateString();
@@ -100,11 +123,17 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2.5 bg-primary/10 rounded-lg">
-                <Sparkles className="w-6 h-6 text-primary" />
+             <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="p-2.5 bg-primary/10 rounded-lg">
+                  <Sparkles className="w-6 h-6 text-primary" />
+                </div>
+                <DialogTitle className="text-xl font-semibold">{selectedHoliday?.keterangan}</DialogTitle>
               </div>
-              <DialogTitle className="text-xl font-semibold">{selectedHoliday?.keterangan}</DialogTitle>
+               <Button variant="ghost" size="icon" onClick={handleListenClick} disabled={isGenerating || isGeneratingAudio || !explanation}>
+                  {isGeneratingAudio ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <Volume2 className="w-5 h-5" />}
+                  <span className="sr-only">Dengarkan Penjelasan</span>
+              </Button>
             </div>
           </DialogHeader>
           <div className="py-2 text-foreground/90">
@@ -116,6 +145,13 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
               </div>
             ) : (
               <p className="text-base leading-relaxed">{explanation}</p>
+            )}
+            {audioUrl && (
+              <div className="mt-4">
+                <audio controls autoPlay src={audioUrl} className="h-10 w-full">
+                  Browser Anda tidak mendukung elemen audio.
+                </audio>
+              </div>
             )}
           </div>
         </DialogContent>

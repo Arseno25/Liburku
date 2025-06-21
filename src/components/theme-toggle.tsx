@@ -17,34 +17,12 @@ export function ThemeToggle() {
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
   }, []);
 
-  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const toggleTheme = () => {
     const isDark = document.documentElement.classList.contains('dark');
     const newTheme = isDark ? 'light' : 'dark';
-
-    // Fallback for browsers that don't support the View Transitions API
-    if (!document.startViewTransition) {
-      setTheme(newTheme);
-      document.documentElement.classList.toggle('dark', !isDark);
-      localStorage.setItem('theme', newTheme);
-      return;
-    }
-
-    const x = event.clientX;
-    const y = event.clientY;
-    const radius = Math.hypot(
-      Math.max(x, window.innerWidth - x),
-      Math.max(y, window.innerHeight - y)
-    );
-
-    document.documentElement.style.setProperty('--x', x + 'px');
-    document.documentElement.style.setProperty('--y', y + 'px');
-    document.documentElement.style.setProperty('--r', radius + 'px');
-
-    document.startViewTransition(() => {
-      setTheme(newTheme);
-      document.documentElement.classList.toggle('dark', !isDark);
-      localStorage.setItem('theme', newTheme);
-    });
+    setTheme(newTheme);
+    document.documentElement.classList.toggle('dark', !isDark);
+    localStorage.setItem('theme', newTheme);
   };
 
   return (

@@ -16,7 +16,9 @@ import { Skeleton } from './ui/skeleton';
 
 interface WeatherData {
   temperature: number;
-  weathercode: number;
+  weatherCode: number;
+  weatherDescription: string;
+  location: string;
 }
 
 // WMO Weather interpretation codes (WW)
@@ -51,6 +53,37 @@ const weatherIcons: { [key: number]: React.ComponentType<{ className?: string }>
   99: CloudLightning, // Thunderstorm with heavy hail
 };
 
+const wmoWeatherCodes: { [key: number]: string } = {
+  0: 'Cerah',
+  1: 'Cerah Berawan',
+  2: 'Berawan Sebagian',
+  3: 'Berawan',
+  45: 'Berkabut',
+  48: 'Kabut Reif',
+  51: 'Gerimis Ringan',
+  53: 'Gerimis Sedang',
+  55: 'Gerimis Lebat',
+  56: 'Gerimis Beku Ringan',
+  57: 'Gerimis Beku Lebat',
+  61: 'Hujan Ringan',
+  63: 'Hujan Sedang',
+  65: 'Hujan Lebat',
+  66: 'Hujan Beku Ringan',
+  67: 'Hujan Beku Lebat',
+  71: 'Salju Ringan',
+  73: 'Salju Sedang',
+  75: 'Salju Lebat',
+  77: 'Butiran Salju',
+  80: 'Hujan Ringan',
+  81: 'Hujan Sedang',
+  82: 'Hujan Deras',
+  85: 'Hujan Salju Ringan',
+  86: 'Hujan Salju Lebat',
+  95: 'Badai Petir',
+  96: 'Badai Petir & Hujan Es',
+  99: 'Badai Petir & Hujan Es Lebat',
+};
+
 export function WeatherWidget() {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -67,45 +100,73 @@ export function WeatherWidget() {
       async (position) => {
         const { latitude, longitude } = position.coords;
         try {
-          const response = await fetch(
+          const weatherResponsePromise = fetch(
             `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current=temperature_2m,weather_code`
           );
-          if (!response.ok) {
-            throw new Error('Failed to fetch weather data.');
+          // Using a free, no-key-required reverse geocoding service
+          const locationResponsePromise = fetch(
+            `https://geocode.maps.co/reverse?lat=${latitude}&lon=${longitude}`
+          );
+
+          const [weatherResponse, locationResponse] = await Promise.all([
+            weatherResponsePromise,
+            locationResponsePromise,
+          ]);
+
+          if (!weatherResponse.ok) {
+            throw new Error('Gagal mengambil data cuaca.');
           }
-          const data = await response.json();
-          if (data && data.current) {
-            setWeather({
-              temperature: Math.round(data.current.temperature_2m),
-              weathercode: data.current.weather_code,
-            });
-          } else {
-             throw new Error('Invalid weather data format.');
+          if (!locationResponse.ok) {
+            throw new Error('Gagal mengambil data lokasi.');
           }
+          
+          const weatherData = await weatherResponse.json();
+          const locationData = await locationResponse.json();
+          
+          if (!weatherData?.current) {
+            throw new Error('Format data cuaca tidak valid.');
+          }
+
+          const weatherCode = weatherData.current.weather_code;
+          const description = wmoWeatherCodes[weatherCode] || 'Cuaca tidak diketahui';
+          
+          const city = locationData.address?.city || locationData.address?.town || locationData.address?.village || locationData.address?.county;
+          const locationString = city || 'Lokasi tidak diketahui';
+
+          setWeather({
+            temperature: Math.round(weatherData.current.temperature_2m),
+            weatherCode: weatherCode,
+            weatherDescription: description,
+            location: locationString,
+          });
+
         } catch (err) {
             if (err instanceof Error) {
                 setError(err.message);
             } else {
-                setError('An unknown error occurred.');
+                setError('Terjadi kesalahan tidak diketahui.');
             }
         } finally {
           setLoading(false);
         }
       },
       () => {
-        setError('Unable to retrieve your location.');
+        setError('Tidak dapat mengambil lokasi Anda.');
         setLoading(false);
       }
     );
   }, []);
 
-  const WeatherIcon = weather ? weatherIcons[weather.weathercode] || Cloud : null;
+  const WeatherIcon = weather ? weatherIcons[weather.weatherCode] || Cloud : null;
 
   if (loading) {
     return (
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-3">
         <Skeleton className="w-8 h-8 rounded-full" />
-        <Skeleton className="w-12 h-6 rounded-md" />
+        <div className="flex flex-col gap-1.5">
+            <Skeleton className="w-24 h-4 rounded-md" />
+            <Skeleton className="w-16 h-4 rounded-md" />
+        </div>
       </div>
     );
   }
@@ -114,16 +175,19 @@ export function WeatherWidget() {
     return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground" title={error}>
             <AlertCircle className="w-5 h-5 text-destructive/80" />
-            <span className="hidden sm:inline">Cuaca Error</span>
+            <span className="hidden sm:inline">Info Cuaca Gagal</span>
         </div>
     );
   }
 
   if (weather && WeatherIcon) {
     return (
-      <div className="flex items-center gap-2 text-foreground font-medium">
-        <WeatherIcon className="w-6 h-6 text-primary" />
-        <span>{weather.temperature}°C</span>
+      <div className="flex items-center gap-3" title={`Cuaca di ${weather.location}`}>
+        <WeatherIcon className="w-8 h-8 text-primary shrink-0" />
+        <div className="text-sm font-medium text-foreground">
+            <div>{weather.temperature}°C, {weather.weatherDescription}</div>
+            <div className="text-xs text-muted-foreground font-normal">{weather.location}</div>
+        </div>
       </div>
     );
   }

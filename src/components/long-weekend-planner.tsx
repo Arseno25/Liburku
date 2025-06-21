@@ -9,7 +9,8 @@ import { Plane, CalendarDays } from 'lucide-react';
 
 interface LongWeekend {
   title: string;
-  date: Date;
+  startDate: Date;
+  endDate: Date;
   holidayName: string;
   duration: number;
   suggestion?: string;
@@ -23,12 +24,26 @@ interface LongWeekendPlannerProps {
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
-const formatDate = (date: Date) => {
-    return `${dayNames[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+const formatDateRange = (startDate: Date, endDate: Date) => {
+    const startDay = dayNames[startDate.getDay()];
+    const startDateNum = startDate.getDate();
+    const startMonth = monthNames[startDate.getMonth()];
+
+    const endDay = dayNames[endDate.getDay()];
+    const endDateNum = endDate.getDate();
+    const endMonth = monthNames[endDate.getMonth()];
+    const endYear = endDate.getFullYear();
+
+    if (startMonth === endMonth) {
+        return `${startDay}, ${startDateNum} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
+    } else {
+        return `${startDay}, ${startDateNum} ${startMonth} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
+    }
 }
 
 export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
+  const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
 
   const longWeekends = useMemo(() => {
     const potentialWeekends: LongWeekend[] = [];
@@ -36,6 +51,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
     today.setHours(0, 0, 0, 0);
 
     const holidayDates = new Set(holidays.map(h => new Date(h.tanggal.replace(/-/g, '/')).toDateString()));
+    const isSaturdayWorkday = workSchedule === 'senin-sabtu';
 
     let upcomingHolidays = holidays
       .map(h => ({ ...h, dateObj: new Date(h.tanggal.replace(/-/g, '/')) }))
@@ -49,51 +65,96 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       const date = holiday.dateObj;
       const day = date.getDay();
 
-      if (day === 0 || day === 6) continue; // Skip holidays on weekends
+      if (day === 0) continue; 
+      if (day === 6 && isSaturdayWorkday) continue;
 
-      if (day === 5) { // Friday
+      if (day === 1) { // Monday
+        const weekendEnd = date;
+        const weekendStart = new Date(date);
+        let duration;
+
+        if (isSaturdayWorkday) {
+            weekendStart.setDate(date.getDate() - 1); // Starts Sunday
+            duration = 2;
+        } else {
+            weekendStart.setDate(date.getDate() - 2); // Starts Saturday
+            duration = 3;
+        }
         potentialWeekends.push({
           title: 'Libur Panjang Akhir Pekan',
-          date: date,
+          startDate: weekendStart,
+          endDate: weekendEnd,
           holidayName: holiday.keterangan,
-          duration: 3,
+          duration: duration,
         });
-      } else if (day === 1) { // Monday
-        potentialWeekends.push({
-          title: 'Libur Panjang Akhir Pekan',
-          date: date,
-          holidayName: holiday.keterangan,
-          duration: 3,
-        });
-      } else if (day === 4) { // Thursday
+      } else if (day === 2) { // Tuesday ("Harpitnas" on Monday)
+        const monday = new Date(date);
+        monday.setDate(date.getDate() - 1);
+        if (!holidayDates.has(monday.toDateString())) {
+            const weekendEnd = date;
+            const weekendStart = new Date(date);
+            let duration;
+
+            if (isSaturdayWorkday) {
+                weekendStart.setDate(date.getDate() - 2); // Starts Sunday
+                duration = 3;
+            } else {
+                weekendStart.setDate(date.getDate() - 3); // Starts Saturday
+                duration = 4;
+            }
+            potentialWeekends.push({
+                title: 'Potensi Libur Panjang',
+                startDate: weekendStart,
+                endDate: weekendEnd,
+                holidayName: holiday.keterangan,
+                duration,
+                suggestion: 'Ambil cuti pada hari Senin',
+            });
+        }
+      } else if (day === 4 && !isSaturdayWorkday) { // Thursday ("Harpitnas" on Friday)
         const friday = new Date(date);
         friday.setDate(date.getDate() + 1);
         if (!holidayDates.has(friday.toDateString())) {
+            const weekendStart = date;
+            const weekendEnd = new Date(date);
+            weekendEnd.setDate(date.getDate() + 3); // Ends Sunday
             potentialWeekends.push({
               title: 'Potensi Libur Panjang',
-              date: date,
+              startDate: weekendStart,
+              endDate: weekendEnd,
               holidayName: holiday.keterangan,
               duration: 4,
               suggestion: 'Ambil cuti pada hari Jumat',
             });
         }
-      } else if (day === 2) { // Tuesday
-        const monday = new Date(date);
-        monday.setDate(date.getDate() - 1);
-        if (!holidayDates.has(monday.toDateString())) {
+      } else if (day === 5) { // Friday
+        const weekendStart = date;
+        const weekendEnd = new Date(date);
+        if (isSaturdayWorkday) {
+            weekendEnd.setDate(date.getDate() + 2); // Ends Sunday
             potentialWeekends.push({
-              title: 'Potensi Libur Panjang',
-              date: date,
-              holidayName: holiday.keterangan,
-              duration: 4,
-              suggestion: 'Ambil cuti pada hari Senin',
+                title: 'Potensi Libur Panjang',
+                startDate: weekendStart,
+                endDate: weekendEnd,
+                holidayName: holiday.keterangan,
+                duration: 3,
+                suggestion: 'Ambil cuti pada hari Sabtu',
+            });
+        } else {
+            weekendEnd.setDate(date.getDate() + 2); // Ends Sunday
+            potentialWeekends.push({
+                title: 'Libur Panjang Akhir Pekan',
+                startDate: weekendStart,
+                endDate: weekendEnd,
+                holidayName: holiday.keterangan,
+                duration: 3,
             });
         }
       }
     }
 
-    return potentialWeekends.sort((a, b) => a.date.getTime() - b.date.getTime());
-  }, [holidays, year, employmentType]);
+    return potentialWeekends.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  }, [holidays, year, employmentType, workSchedule]);
 
   return (
     <div className="mt-8">
@@ -106,23 +167,45 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
             <CardTitle className="font-headline">Perencana Libur Panjang {year}</CardTitle>
           </div>
            <div className="pt-4 mt-4 border-t border-border/80">
-            <p className="text-sm text-muted-foreground mb-3">
-              Sesuaikan rekomendasi liburan berdasarkan tipe kepegawaian Anda.
-            </p>
-            <RadioGroup
-                value={employmentType}
-                onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
-                className="flex items-center gap-6"
-            >
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="pns" id="pns" />
-                    <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
+                <p className="text-sm text-muted-foreground mb-3">
+                Sesuaikan rekomendasi liburan berdasarkan tipe kepegawaian dan jadwal kerja Anda.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                    <div>
+                        <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
+                        <RadioGroup
+                            value={employmentType}
+                            onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
+                            className="flex items-center gap-6 mt-1"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="pns" id="pns" />
+                                <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="private" id="private" />
+                                <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                     <div>
+                        <Label className="text-xs font-semibold text-muted-foreground">Jadwal Kerja</Label>
+                        <RadioGroup
+                            value={workSchedule}
+                            onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
+                            className="flex items-center gap-6 mt-1"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="senin-jumat" id="senin-jumat" />
+                                <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">Senin - Jumat</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
+                                <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">Senin - Sabtu</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="private" id="private" />
-                    <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
-                </div>
-            </RadioGroup>
           </div>
         </CardHeader>
         <CardContent className="grid gap-4">
@@ -140,7 +223,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
                     <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
                     <div className="flex items-center gap-2 mt-2 text-sm font-medium text-primary">
                         <CalendarDays className="w-4 h-4" />
-                        <span>{formatDate(weekend.date)}</span>
+                        <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
                     </div>
                     {weekend.suggestion && (
                       <div className="mt-2">
@@ -154,7 +237,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
             ))
            ) : (
             <div className="text-center text-muted-foreground py-6">
-              <p>Tidak ada potensi libur panjang yang akan datang untuk tipe pegawai yang dipilih.</p>
+              <p>Tidak ada potensi libur panjang yang akan datang untuk filter yang dipilih.</p>
             </div>
            )}
         </CardContent>

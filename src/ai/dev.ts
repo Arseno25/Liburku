@@ -5,6 +5,7 @@ import './flows/suggest-long-weekend-activity-flow';
 import './flows/generate-activity-image-flow';
 import './flows/text-to-speech-flow';
 import './flows/generate-itinerary-flow';
+import './flows/generate-packing-list-flow';
 
 // Tools must also be imported.
 import './tools/find-local-events-tool';

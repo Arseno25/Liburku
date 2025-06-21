@@ -1,13 +1,19 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Badge } from '@/components/ui/badge';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { MarkdownRenderer } from './markdown-renderer';
 import { LongWeekend } from './long-weekend-planner';
-import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles } from 'lucide-react';
+import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+
+import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
+import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
+import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
+import { generatePackingList, GeneratePackingListInput } from '@/ai/flows/generate-packing-list-flow';
 
 const themes = [
     { name: 'Petualangan', icon: Mountain },
@@ -20,21 +26,14 @@ interface SuggestionDialogProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
     weekend: LongWeekend | null;
-    theme: string;
-    suggestion: string;
-    imageUrl: string;
-    itinerary: string;
-    isGeneratingSuggestion: boolean;
-    isGeneratingItinerary: boolean;
-    showThemeSelection: boolean;
-    onThemeSelect?: (theme: string) => void;
-    onGenerateItinerary?: () => void;
+    preselectedTheme?: string;
 }
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
 const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 const formatDateRange = (startDate: Date, endDate: Date) => {
+    if (!startDate || !endDate) return '';
     const startDay = dayNames[startDate.getDay()];
     const startDateNum = startDate.getDate();
     const startMonth = monthNames[startDate.getMonth()];
@@ -55,16 +54,125 @@ export function SuggestionDialog({
     isOpen,
     onOpenChange,
     weekend,
-    theme,
-    suggestion,
-    imageUrl,
-    itinerary,
-    isGeneratingSuggestion,
-    isGeneratingItinerary,
-    showThemeSelection,
-    onThemeSelect,
-    onGenerateItinerary
+    preselectedTheme = ''
 }: SuggestionDialogProps) {
+    const { toast } = useToast();
+
+    // Internal state for all generated content
+    const [theme, setTheme] = useState('');
+    const [suggestion, setSuggestion] = useState('');
+    const [imageUrl, setImageUrl] = useState('');
+    const [itinerary, setItinerary] = useState('');
+    const [packingList, setPackingList] = useState('');
+
+    // State flags
+    const [showThemeSelection, setShowThemeSelection] = useState(true);
+    const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
+    const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
+    const [isGeneratingPackingList, setIsGeneratingPackingList] = useState(false);
+
+    const resetState = () => {
+        setTheme('');
+        setSuggestion('');
+        setImageUrl('');
+        setItinerary('');
+        setPackingList('');
+        setShowThemeSelection(true);
+        setIsGeneratingSuggestion(false);
+        setIsGeneratingItinerary(false);
+        setIsGeneratingPackingList(false);
+    };
+
+    useEffect(() => {
+        if (isOpen) {
+            resetState();
+            if (preselectedTheme && weekend) {
+                // For "Surprise Me" feature, kick off generation immediately
+                handleThemeSelect(preselectedTheme);
+            }
+        }
+    }, [isOpen, preselectedTheme, weekend]);
+
+    const handleThemeSelect = async (selectedTheme: string) => {
+        if (!weekend) return;
+        
+        setTheme(selectedTheme);
+        setShowThemeSelection(false);
+        setIsGeneratingSuggestion(true);
+
+        try {
+            const suggestionInput: SuggestActivityInput = {
+                holidayName: weekend.holidayName,
+                duration: weekend.duration,
+                dateRange: formatDateRange(weekend.startDate, weekend.endDate),
+                theme: selectedTheme,
+            };
+            
+            // Generate suggestion and image in parallel
+            const [suggestionResult, imageResult] = await Promise.all([
+                suggestActivity(suggestionInput),
+                generateActivityImage({ imagePrompt: `Sebuah foto perjalanan yang indah dan profesional dengan tema: ${selectedTheme}` })
+            ]);
+
+            setSuggestion(suggestionResult.suggestion);
+            
+            // Then generate a more specific image based on the suggestion
+            const specificImageResult = await generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
+            setImageUrl(specificImageResult.imageUrl);
+
+        } catch (error) {
+            console.error("Gagal menghasilkan saran atau gambar:", error);
+            toast({ variant: "destructive", title: "Gagal", description: "Tidak dapat menghasilkan ide liburan. Silakan coba lagi." });
+            onOpenChange(false); // Close dialog on error
+        } finally {
+            setIsGeneratingSuggestion(false);
+        }
+    };
+
+    const handleGenerateItinerary = async () => {
+        if (!weekend || !suggestion || !theme) return;
+        setIsGeneratingItinerary(true);
+        setItinerary('');
+        try {
+            const itineraryInput: GenerateItineraryInput = {
+                holidayName: weekend.holidayName,
+                duration: weekend.duration,
+                dateRange: formatDateRange(weekend.startDate, weekend.endDate),
+                theme: theme,
+                suggestion: suggestion,
+            };
+            const result = await generateItinerary(itineraryInput);
+            setItinerary(result.itinerary);
+        } catch (error) {
+            console.error("Gagal membuat rencana perjalanan:", error);
+            setItinerary("Maaf, terjadi kesalahan saat membuat rencana perjalanan. Silakan coba lagi nanti.");
+        } finally {
+            setIsGeneratingItinerary(false);
+        }
+    };
+
+    const handleGeneratePackingList = async () => {
+        if (!weekend || !suggestion || !itinerary || !theme) return;
+        setIsGeneratingPackingList(true);
+        setPackingList('');
+        try {
+            const packingListInput: GeneratePackingListInput = {
+                duration: weekend.duration,
+                theme: theme,
+                suggestion: suggestion,
+                itinerary: itinerary,
+            };
+            const result = await generatePackingList(packingListInput);
+            setPackingList(result.packingList);
+        } catch (error) {
+            console.error("Gagal membuat daftar barang bawaan:", error);
+            setPackingList("Maaf, terjadi kesalahan saat membuat daftar barang bawaan. Silakan coba lagi nanti.");
+        } finally {
+            setIsGeneratingPackingList(false);
+        }
+    };
+
+    const isSuggestionReady = !showThemeSelection && !isGeneratingSuggestion && suggestion;
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -79,13 +187,15 @@ export function SuggestionDialog({
                             <p className="text-sm text-muted-foreground">{weekend?.holidayName}</p>
                         </div>
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-medium text-primary/90">
-                        <CalendarDays className="w-4 h-4" />
-                        <span>{weekend && formatDateRange(weekend.startDate, weekend.endDate)}</span>
-                    </div>
+                    {weekend && (
+                        <div className="flex items-center gap-2 text-sm font-medium text-primary/90">
+                            <CalendarDays className="w-4 h-4" />
+                            <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
+                        </div>
+                    )}
                 </DialogHeader>
                 <div className="py-2 space-y-4 overflow-y-auto pr-2">
-                    {showThemeSelection && onThemeSelect && (
+                    {showThemeSelection && (
                         <div className="animate-in fade-in-50 duration-300">
                             <p className="text-center font-medium text-foreground mb-4">Pilih tema liburan Anda:</p>
                             <div className="grid grid-cols-2 gap-3">
@@ -94,7 +204,7 @@ export function SuggestionDialog({
                                         key={t.name}
                                         variant="outline"
                                         className="py-6 flex-col gap-2 h-auto text-base"
-                                        onClick={() => onThemeSelect(t.name)}
+                                        onClick={() => handleThemeSelect(t.name)}
                                     >
                                         <t.icon className="w-6 h-6 text-primary" />
                                         <span>{t.name}</span>
@@ -119,9 +229,9 @@ export function SuggestionDialog({
                             </div>
                         </div>
                     )}
-
-                    {!showThemeSelection && !isGeneratingSuggestion && suggestion && (
-                        <div className="space-y-4 animate-in fade-in-50 duration-300">
+                    
+                    {isSuggestionReady && (
+                         <div className="space-y-4 animate-in fade-in-50 duration-300">
                             <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
                                 <img
                                     src={imageUrl}
@@ -148,24 +258,56 @@ export function SuggestionDialog({
                                     </div>
                                 </div>
                             ) : itinerary ? (
-                                <div className="space-y-3 animate-in fade-in-50">
-                                    <h4 className="font-semibold text-lg flex items-center gap-2.5">
-                                        <FileText className="w-5 h-5 text-primary" />
-                                        Rencana Perjalanan
-                                    </h4>
-                                    <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
-                                        <MarkdownRenderer>{itinerary}</MarkdownRenderer>
+                                <div className="space-y-4 animate-in fade-in-50">
+                                    <div>
+                                        <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
+                                            <FileText className="w-5 h-5 text-primary" />
+                                            Rencana Perjalanan
+                                        </h4>
+                                        <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                            <MarkdownRenderer>{itinerary}</MarkdownRenderer>
+                                        </div>
                                     </div>
+                                    <Separator className="my-2" />
+                                    
+                                    {isGeneratingPackingList ? (
+                                        <div className="space-y-4 pt-2">
+                                            <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
+                                                <Backpack className="w-6 h-6" />
+                                                <p className="font-medium">Menyiapkan daftar barang bawaan...</p>
+                                            </div>
+                                            <div className="space-y-3 pl-9">
+                                                <Skeleton className="h-4 w-full" />
+                                                <Skeleton className="h-4 w-full" />
+                                                <Skeleton className="h-4 w-4/5" />
+                                            </div>
+                                        </div>
+                                    ) : packingList ? (
+                                        <div className="animate-in fade-in-50">
+                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
+                                                <Backpack className="w-5 h-5 text-primary" />
+                                                Daftar Barang Bawaan
+                                            </h4>
+                                            <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                                <MarkdownRenderer>{packingList}</MarkdownRenderer>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="text-center pt-2">
+                                            <Button onClick={handleGeneratePackingList}>
+                                                <Backpack className="mr-2 h-4 w-4" />
+                                                Buatkan Daftar Barang Bawaan
+                                            </Button>
+                                        </div>
+                                    )}
                                 </div>
                             ) : (
-                                onGenerateItinerary && (
                                 <div className="text-center pt-2">
-                                    <Button onClick={onGenerateItinerary}>
+                                    <Button onClick={handleGenerateItinerary}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Buatkan Rencana Perjalanan
                                     </Button>
                                 </div>
-                                )
                             )}
                         </div>
                     )}

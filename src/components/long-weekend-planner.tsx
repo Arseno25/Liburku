@@ -5,10 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles } from 'lucide-react';
-import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
-import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
-import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
+import { Plane, CalendarDays } from 'lucide-react';
 import { SuggestionDialog } from './suggestion-dialog';
 
 export interface LongWeekend {
@@ -52,87 +49,13 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
-  const [suggestion, setSuggestion] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
-  const [itinerary, setItinerary] = useState('');
-  const [selectedTheme, setSelectedTheme] = useState('');
-
-  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
-  const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
-  const [showThemeSelection, setShowThemeSelection] = useState(true);
 
   const handleWeekendClick = (weekend: LongWeekend) => {
     onScrollToMonth?.(weekend.startDate.getMonth());
     setSelectedWeekend(weekend);
-    setSuggestion('');
-    setImageUrl('');
-    setItinerary('');
-    setSelectedTheme('');
-    setShowThemeSelection(true);
-    setIsGeneratingSuggestion(false);
-    setIsGeneratingItinerary(false);
     setIsDialogOpen(true);
   };
   
-  const handleThemeSelect = async (theme: string) => {
-      if (!selectedWeekend) return;
-      
-      setShowThemeSelection(false);
-      setIsGeneratingSuggestion(true);
-      setItinerary('');
-      setIsGeneratingItinerary(false);
-      setSelectedTheme(theme);
-
-      try {
-        const suggestionInput: SuggestActivityInput = {
-          holidayName: selectedWeekend.holidayName,
-          duration: selectedWeekend.duration,
-          dateRange: formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate),
-          theme: theme,
-        };
-        
-        const suggestionResult = await suggestActivity(suggestionInput);
-        setSuggestion(suggestionResult.suggestion);
-        
-        const imageResult = await generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
-        setImageUrl(imageResult.imageUrl);
-
-      } catch (error) {
-        console.error("Gagal menghasilkan saran atau gambar:", error);
-        if (!suggestion) {
-          setSuggestion("Maaf, terjadi kesalahan saat mencoba memberikan ide liburan. Silakan coba lagi nanti.");
-        }
-        setImageUrl('https://placehold.co/600x400.png');
-      } finally {
-        setIsGeneratingSuggestion(false);
-      }
-  }
-
-  const handleGenerateItinerary = async () => {
-    if (!selectedWeekend || !suggestion || !selectedTheme) return;
-
-    setIsGeneratingItinerary(true);
-    setItinerary('');
-
-    try {
-        const itineraryInput: GenerateItineraryInput = {
-            holidayName: selectedWeekend.holidayName,
-            duration: selectedWeekend.duration,
-            dateRange: formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate),
-            theme: selectedTheme,
-            suggestion: suggestion,
-        };
-
-        const result = await generateItinerary(itineraryInput);
-        setItinerary(result.itinerary);
-    } catch (error) {
-        console.error("Gagal membuat rencana perjalanan:", error);
-        setItinerary("Maaf, terjadi kesalahan saat membuat rencana perjalanan. Silakan coba lagi nanti.");
-    } finally {
-        setIsGeneratingItinerary(false);
-    }
-  }
-
   const longWeekends = useMemo(() => {
     const potentialWeekends: LongWeekend[] = [];
     const today = new Date();
@@ -339,15 +262,6 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         weekend={selectedWeekend}
-        theme={selectedTheme}
-        onThemeSelect={handleThemeSelect}
-        suggestion={suggestion}
-        imageUrl={imageUrl}
-        itinerary={itinerary}
-        onGenerateItinerary={handleGenerateItinerary}
-        isGeneratingSuggestion={isGeneratingSuggestion}
-        isGeneratingItinerary={isGeneratingItinerary}
-        showThemeSelection={showThemeSelection}
       />
     </>
   );

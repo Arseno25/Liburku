@@ -13,9 +13,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { LongWeekend, LongWeekendPlanner } from '@/components/long-weekend-planner';
 import { Button } from '@/components/ui/button';
 import { SuggestionDialog } from '@/components/suggestion-dialog';
-import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
-import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
-import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
 import { WeatherWidget } from '@/components/weather-widget';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
@@ -24,23 +21,6 @@ const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'
 const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
 
 const themes = [ 'Petualangan', 'Relaksasi', 'Kuliner', 'Budaya' ];
-
-const formatDateRange = (startDate: Date, endDate: Date) => {
-    const startDay = dayNames[startDate.getDay()];
-    const startDateNum = startDate.getDate();
-    const startMonth = monthNames[startDate.getMonth()];
-
-    const endDay = dayNames[endDate.getDay()];
-    const endDateNum = endDate.getDate();
-    const endMonth = monthNames[endDate.getMonth()];
-    const endYear = endDate.getFullYear();
-
-    if (startMonth === endMonth) {
-        return `${startDay}, ${startDateNum} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
-    } else {
-        return `${startDay}, ${startDateNum} ${startMonth} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
-    }
-}
 
 export default function Home() {
   const { toast } = useToast();
@@ -53,14 +33,11 @@ export default function Home() {
 
   // State for Instant Inspiration feature
   const [isInspirationOpen, setIsInspirationOpen] = useState(false);
-  const [isGeneratingInspiration, setIsGeneratingInspiration] = useState(false);
-  const [inspirationResult, setInspirationResult] = useState<{
+  const [inspirationData, setInspirationData] = useState<{
     weekend: LongWeekend | null;
-    suggestion: string;
-    imageUrl: string;
-    itinerary: string;
     theme: string;
-  }>({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
+  }>({ weekend: null, theme: '' });
+
 
   const handleScrollToMonth = useCallback((monthIndex: number) => {
     monthRefs.current[monthIndex]?.scrollIntoView({
@@ -169,50 +146,11 @@ export default function Home() {
       return;
     }
 
-    setIsGeneratingInspiration(true);
+    const randomWeekend = upcomingLongWeekends[Math.floor(Math.random() * upcomingLongWeekends.length)];
+    const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+    
+    setInspirationData({ weekend: randomWeekend, theme: randomTheme });
     setIsInspirationOpen(true);
-    setInspirationResult({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
-
-    try {
-      const randomWeekend = upcomingLongWeekends[Math.floor(Math.random() * upcomingLongWeekends.length)];
-      const randomTheme = themes[Math.floor(Math.random() * themes.length)];
-
-      const suggestionInput: SuggestActivityInput = {
-        holidayName: randomWeekend.holidayName,
-        duration: randomWeekend.duration,
-        dateRange: formatDateRange(randomWeekend.startDate, randomWeekend.endDate),
-        theme: randomTheme,
-      };
-
-      const suggestionResult = await suggestActivity(suggestionInput);
-      setInspirationResult(prev => ({ ...prev, weekend: randomWeekend, theme: randomTheme, suggestion: suggestionResult.suggestion }));
-      
-      const imageResult = await generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
-      setInspirationResult(prev => ({ ...prev, imageUrl: imageResult.imageUrl }));
-      
-      setIsGeneratingInspiration(false); // Suggestion and image are ready
-
-      const itineraryInput: GenerateItineraryInput = {
-          holidayName: randomWeekend.holidayName,
-          duration: randomWeekend.duration,
-          dateRange: formatDateRange(randomWeekend.startDate, randomWeekend.endDate),
-          theme: randomTheme,
-          suggestion: suggestionResult.suggestion,
-      };
-
-      const itineraryResult = await generateItinerary(itineraryInput);
-      setInspirationResult(prev => ({ ...prev, itinerary: itineraryResult.itinerary }));
-
-    } catch (error) {
-      console.error(error);
-      setIsGeneratingInspiration(false);
-      setIsInspirationOpen(false);
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Tidak dapat menghasilkan inspirasi liburan. Silakan coba lagi.",
-      });
-    }
   };
   
   useEffect(() => {
@@ -416,7 +354,7 @@ export default function Home() {
                     size="lg" 
                     className="w-full"
                     onClick={handleSurpriseMe}
-                    disabled={isGeneratingInspiration || loading}
+                    disabled={loading}
                   >
                     <Wand2 className="mr-2 h-5 w-5" />
                     Kejutkan Saya!
@@ -431,14 +369,8 @@ export default function Home() {
       <SuggestionDialog
         isOpen={isInspirationOpen}
         onOpenChange={setIsInspirationOpen}
-        weekend={inspirationResult.weekend}
-        theme={inspirationResult.theme}
-        suggestion={inspirationResult.suggestion}
-        imageUrl={inspirationResult.imageUrl}
-        itinerary={inspirationResult.itinerary}
-        isGeneratingSuggestion={isGeneratingInspiration}
-        isGeneratingItinerary={!!inspirationResult.suggestion && !inspirationResult.itinerary}
-        showThemeSelection={false}
+        weekend={inspirationData.weekend}
+        preselectedTheme={inspirationData.theme}
       />
     </main>
   );

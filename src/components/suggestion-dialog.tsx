@@ -7,13 +7,14 @@ import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { MarkdownRenderer } from './markdown-renderer';
 import { LongWeekend } from './long-weekend-planner';
-import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack } from 'lucide-react';
+import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack, Wallet } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
 import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
 import { generatePackingList, GeneratePackingListInput } from '@/ai/flows/generate-packing-list-flow';
+import { estimateTripBudget, EstimateTripBudgetInput } from '@/ai/flows/estimate-trip-budget-flow';
 
 const themes = [
     { name: 'Petualangan', icon: Mountain },
@@ -64,12 +65,14 @@ export function SuggestionDialog({
     const [imageUrl, setImageUrl] = useState('');
     const [itinerary, setItinerary] = useState('');
     const [packingList, setPackingList] = useState('');
+    const [budget, setBudget] = useState('');
 
     // State flags
     const [showThemeSelection, setShowThemeSelection] = useState(true);
     const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
     const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
     const [isGeneratingPackingList, setIsGeneratingPackingList] = useState(false);
+    const [isGeneratingBudget, setIsGeneratingBudget] = useState(false);
 
     const resetState = () => {
         setTheme('');
@@ -77,10 +80,12 @@ export function SuggestionDialog({
         setImageUrl('');
         setItinerary('');
         setPackingList('');
+        setBudget('');
         setShowThemeSelection(true);
         setIsGeneratingSuggestion(false);
         setIsGeneratingItinerary(false);
         setIsGeneratingPackingList(false);
+        setIsGeneratingBudget(false);
     };
 
     useEffect(() => {
@@ -150,6 +155,29 @@ export function SuggestionDialog({
             setIsGeneratingItinerary(false);
         }
     };
+    
+    const handleGenerateBudget = async () => {
+        if (!weekend || !suggestion || !itinerary || !theme) return;
+
+        setIsGeneratingBudget(true);
+        setBudget('');
+        try {
+            const budgetInput: EstimateTripBudgetInput = {
+                duration: weekend.duration,
+                theme: theme,
+                suggestion: suggestion,
+                itinerary: itinerary,
+            };
+            const result = await estimateTripBudget(budgetInput);
+            setBudget(result.budget);
+        } catch (error) {
+            console.error("Gagal membuat estimasi anggaran:", error);
+            setBudget("Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.");
+        } finally {
+            setIsGeneratingBudget(false);
+        }
+    };
+
 
     const handleGeneratePackingList = async () => {
         if (!weekend || !suggestion || !itinerary || !theme) return;
@@ -268,13 +296,15 @@ export function SuggestionDialog({
                                             <MarkdownRenderer>{itinerary}</MarkdownRenderer>
                                         </div>
                                     </div>
-                                    <Separator className="my-2" />
-                                    
-                                    {isGeneratingPackingList ? (
+
+                                    <Separator className="my-4" />
+
+                                    {/* Budget Section */}
+                                    {isGeneratingBudget ? (
                                         <div className="space-y-4 pt-2">
                                             <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-                                                <Backpack className="w-6 h-6" />
-                                                <p className="font-medium">Menyiapkan daftar barang bawaan...</p>
+                                                <Wallet className="w-6 h-6" />
+                                                <p className="font-medium">Menyusun estimasi anggaran...</p>
                                             </div>
                                             <div className="space-y-3 pl-9">
                                                 <Skeleton className="h-4 w-full" />
@@ -282,23 +312,60 @@ export function SuggestionDialog({
                                                 <Skeleton className="h-4 w-4/5" />
                                             </div>
                                         </div>
-                                    ) : packingList ? (
+                                    ) : budget ? (
                                         <div className="animate-in fade-in-50">
                                             <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
-                                                <Backpack className="w-5 h-5 text-primary" />
-                                                Daftar Barang Bawaan
+                                                <Wallet className="w-5 h-5 text-primary" />
+                                                Estimasi Anggaran
                                             </h4>
                                             <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
-                                                <MarkdownRenderer>{packingList}</MarkdownRenderer>
+                                                <MarkdownRenderer>{budget}</MarkdownRenderer>
                                             </div>
                                         </div>
                                     ) : (
-                                        <div className="text-center pt-2">
-                                            <Button onClick={handleGeneratePackingList}>
-                                                <Backpack className="mr-2 h-4 w-4" />
-                                                Buatkan Daftar Barang Bawaan
+                                        <div className="text-center">
+                                            <Button onClick={handleGenerateBudget}>
+                                                <Wallet className="mr-2 h-4 w-4" />
+                                                Buatkan Estimasi Anggaran
                                             </Button>
                                         </div>
+                                    )}
+                                    
+                                    {/* Packing List Section appears after budget is done */}
+                                    {budget && (
+                                        <>
+                                            <Separator className="my-4" />
+                                            {isGeneratingPackingList ? (
+                                                <div className="space-y-4 pt-2">
+                                                    <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
+                                                        <Backpack className="w-6 h-6" />
+                                                        <p className="font-medium">Menyiapkan daftar barang bawaan...</p>
+                                                    </div>
+                                                    <div className="space-y-3 pl-9">
+                                                        <Skeleton className="h-4 w-full" />
+                                                        <Skeleton className="h-4 w-full" />
+                                                        <Skeleton className="h-4 w-4/5" />
+                                                    </div>
+                                                </div>
+                                            ) : packingList ? (
+                                                <div className="animate-in fade-in-50">
+                                                    <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
+                                                        <Backpack className="w-5 h-5 text-primary" />
+                                                        Daftar Barang Bawaan
+                                                    </h4>
+                                                    <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                                        <MarkdownRenderer>{packingList}</MarkdownRenderer>
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                <div className="text-center">
+                                                    <Button onClick={handleGeneratePackingList}>
+                                                        <Backpack className="mr-2 h-4 w-4" />
+                                                        Buatkan Daftar Barang Bawaan
+                                                    </Button>
+                                                </div>
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             ) : (

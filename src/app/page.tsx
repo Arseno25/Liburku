@@ -127,9 +127,9 @@ export default function Home() {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
-                    <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl">
-                      <CardHeader className="text-center border-b p-4">
-                        <CardTitle className="text-lg font-semibold font-headline text-foreground/90">
+                    <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden">
+                      <CardHeader className="text-center border-b p-4 bg-secondary/50">
+                        <CardTitle className="text-lg font-semibold font-headline text-secondary-foreground">
                           {monthName}
                         </CardTitle>
                       </CardHeader>

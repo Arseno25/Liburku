@@ -6,6 +6,7 @@ import { DayContent, DayPickerProps } from 'react-day-picker';
 import { Holiday } from '@/types/holiday';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface HolidayCalendarProps extends DayPickerProps {
   holidays: Holiday[];
@@ -20,30 +21,6 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     }));
   }, [holidays]);
 
-  const { nationalHolidays, jointLeaves } = React.useMemo(() => {
-    const nationalHolidays = parsedHolidays
-      .filter((h) => !h.is_cuti)
-      .map((h) => h.parsedDate);
-
-    const jointLeaves = parsedHolidays
-      .filter((h) => h.is_cuti)
-      .map((h) => h.parsedDate);
-      
-    return { nationalHolidays, jointLeaves };
-  }, [parsedHolidays]);
-
-  const modifiers = {
-    nationalHoliday: nationalHolidays,
-    jointLeave: jointLeaves,
-    today: new Date(),
-  };
-
-  const modifiersClassNames = {
-    nationalHoliday: 'rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive',
-    jointLeave: 'rounded-full bg-warning text-warning-foreground hover:bg-warning/90 focus:bg-warning',
-    today: 'bg-accent text-accent-foreground rounded-full',
-  };
-
   const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {
     const dayDateString = dayProps.date.toDateString();
     
@@ -51,14 +28,30 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       (h) => h.parsedDate.toDateString() === dayDateString
     );
 
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const isToday = dayProps.date.getTime() === today.getTime();
+
+    const dayNumber = <DayContent {...dayProps} />;
+
     if (holiday) {
+      const holidayContent = (
+          <div
+            className={cn(
+              'flex h-8 w-8 items-center justify-center rounded-full',
+              holiday.is_cuti
+                ? 'bg-warning text-warning-foreground'
+                : 'bg-destructive text-destructive-foreground'
+            )}
+          >
+            {dayNumber}
+          </div>
+      );
       return (
         <TooltipProvider delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative w-full h-full flex items-center justify-center">
-                <DayContent {...dayProps} />
-              </div>
+              {holidayContent}
             </TooltipTrigger>
             <TooltipContent>
               <p>{holiday.keterangan}</p>
@@ -67,14 +60,21 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
         </TooltipProvider>
       );
     }
-    return <div className="relative w-full h-full flex items-center justify-center"><DayContent {...dayProps} /></div>;
+
+    if (isToday) {
+      return (
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
+          {dayNumber}
+        </div>
+      );
+    }
+
+    return dayNumber;
   };
 
   return (
     <div className="w-full transition-opacity duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
       <Calendar
-        modifiers={modifiers}
-        modifiersClassNames={modifiersClassNames}
         components={{
           DayContent: CustomDay,
         }}

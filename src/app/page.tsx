@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Calendar as CalendarIcon, Info, Wand2 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -47,6 +47,7 @@ export default function Home() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [currentDate, setCurrentDate] = useState('');
+  const monthRefs = useRef<(HTMLDivElement | null)[]>([]);
 
   // State for Instant Inspiration feature
   const [isInspirationOpen, setIsInspirationOpen] = useState(false);
@@ -58,6 +59,13 @@ export default function Home() {
     itinerary: string;
     theme: string;
   }>({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
+
+  const handleScrollToMonth = (monthIndex: number) => {
+    monthRefs.current[monthIndex]?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+    });
+  };
 
   useEffect(() => {
     setCurrentDate(
@@ -300,7 +308,7 @@ export default function Home() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6 bg-secondary/20">
+          <CardContent className="p-4 sm:p-6">
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -320,8 +328,12 @@ export default function Home() {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
-                    <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden bg-card">
-                      <CardHeader className="text-center border-b p-4 bg-accent/5 dark:bg-accent/10">
+                    <Card 
+                      key={monthIndex} 
+                      ref={(el) => (monthRefs.current[monthIndex] = el)}
+                      className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden bg-card border"
+                    >
+                      <CardHeader className="text-center border-b p-4 bg-muted/50">
                         <CardTitle className="text-lg font-semibold font-headline text-secondary-foreground">
                           {monthName}
                         </CardTitle>
@@ -351,7 +363,11 @@ export default function Home() {
         <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
           <div className="lg:col-span-2">
             {!loading && holidays.length > 0 && (
-              <LongWeekendPlanner holidays={holidays} year={selectedYear} />
+              <LongWeekendPlanner 
+                holidays={holidays} 
+                year={selectedYear}
+                onScrollToMonth={handleScrollToMonth} 
+              />
             )}
           </div>
           <div className="lg:col-span-1">

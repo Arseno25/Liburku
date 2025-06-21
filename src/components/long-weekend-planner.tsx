@@ -9,7 +9,6 @@ import { Plane, CalendarDays, Sparkles } from 'lucide-react';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
 import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
-import { Badge } from '@/components/ui/badge';
 import { SuggestionDialog } from './suggestion-dialog';
 
 export interface LongWeekend {
@@ -24,6 +23,7 @@ export interface LongWeekend {
 interface LongWeekendPlannerProps {
   holidays: Holiday[];
   year: number;
+  onScrollToMonth?: (monthIndex: number) => void;
 }
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -46,7 +46,7 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
-export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) {
+export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
   const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
 
@@ -62,6 +62,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [showThemeSelection, setShowThemeSelection] = useState(true);
 
   const handleWeekendClick = (weekend: LongWeekend) => {
+    onScrollToMonth?.(weekend.startDate.getMonth());
     setSelectedWeekend(weekend);
     setSuggestion('');
     setImageUrl('');
@@ -298,40 +299,32 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
         <CardContent className="grid gap-4">
           {longWeekends.length > 0 ? (
             longWeekends.map((weekend, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 onClick={() => handleWeekendClick(weekend)}
-                className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg bg-card hover:bg-secondary/50 transition-colors cursor-pointer"
+                className="p-4 border rounded-lg bg-card hover:border-primary/70 hover:shadow-lg transition-all cursor-pointer group"
               >
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                    <div className="flex flex-col items-center justify-center h-16 w-16 bg-primary text-primary-foreground rounded-lg p-2 text-center">
+                <div className="flex justify-between items-start gap-4">
+                    <div className="flex-grow">
+                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{weekend.title}</p>
+                        <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center shrink-0 h-16 w-16 bg-primary/10 text-primary rounded-lg p-2 text-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
                         <span className="text-3xl font-bold">{weekend.duration}</span>
                         <span className="text-xs font-medium leading-tight">HARI</span>
                     </div>
                 </div>
-                <div className="flex-grow">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold text-foreground">{weekend.title}</p>
-                        <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
-                      </div>
-                      <Badge variant="outline" className="hidden sm:flex items-center gap-1.5 border-primary/50 text-primary/80">
-                        <Sparkles className="w-3.5 h-3.5" />
-                        <span>Lihat Ide</span>
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2 text-sm font-medium text-primary">
-                        <CalendarDays className="w-4 h-4" />
-                        <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
-                    </div>
-                    {weekend.suggestion && (
-                      <div className="mt-2">
-                          <p className="text-xs text-accent-foreground bg-accent rounded-full px-3 py-1 mt-2 inline-block font-semibold">
-                              Saran: {weekend.suggestion}
-                          </p>
-                      </div>
-                    )}
+                <div className="flex items-center gap-2 mt-3 text-sm font-medium text-muted-foreground">
+                    <CalendarDays className="w-4 h-4 text-primary/80" />
+                    <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
                 </div>
+                {weekend.suggestion && (
+                    <div className="mt-3 pt-3 border-t border-dashed">
+                        <p className="text-xs text-accent-foreground bg-accent/90 rounded-full px-3 py-1 mt-2 inline-block font-semibold">
+                            Saran: {weekend.suggestion}
+                        </p>
+                    </div>
+                )}
               </div>
             ))
           ) : (

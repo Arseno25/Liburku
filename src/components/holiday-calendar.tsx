@@ -128,6 +128,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       <div className="w-full transition-opacity duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
         <Calendar
           locale={id}
+          weekStartsOn={0}
           formatters={{
             formatWeekdayName: (day) => {
               const dayName = format(day, 'eee', { locale: id });

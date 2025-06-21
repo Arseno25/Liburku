@@ -17,12 +17,46 @@ export function ThemeToggle() {
     document.documentElement.classList.toggle('dark', initialTheme === 'dark');
   }, []);
 
-  const toggleTheme = () => {
+  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
     const isDark = document.documentElement.classList.contains('dark');
     const newTheme = isDark ? 'light' : 'dark';
-    setTheme(newTheme);
-    document.documentElement.classList.toggle('dark', !isDark);
-    localStorage.setItem('theme', newTheme);
+
+    // Fallback for browsers that don't support View Transitions
+    if (!document.startViewTransition) {
+      setTheme(newTheme);
+      document.documentElement.classList.toggle('dark', !isDark);
+      localStorage.setItem('theme', newTheme);
+      return;
+    }
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const transition = document.startViewTransition(() => {
+        document.documentElement.classList.toggle('dark', !isDark);
+        setTheme(newTheme);
+        localStorage.setItem('theme', newTheme);
+    });
+    
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${endRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 500,
+          easing: 'ease-in-out',
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
   };
 
   return (

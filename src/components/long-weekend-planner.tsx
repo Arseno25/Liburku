@@ -5,18 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
+import { Plane, CalendarDays, Sparkles } from 'lucide-react';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
 import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
 import { Badge } from '@/components/ui/badge';
-import { Button } from './ui/button';
-import { Separator } from './ui/separator';
-import { MarkdownRenderer } from './markdown-renderer';
+import { SuggestionDialog } from './suggestion-dialog';
 
-interface LongWeekend {
+export interface LongWeekend {
   title: string;
   startDate: Date;
   endDate: Date;
@@ -50,13 +46,6 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
-const themes = [
-    { name: 'Petualangan', icon: Mountain },
-    { name: 'Relaksasi', icon: Waves },
-    { name: 'Kuliner', icon: UtensilsCrossed },
-    { name: 'Budaya', icon: Landmark },
-]
-
 export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
   const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
@@ -65,11 +54,12 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
   const [suggestion, setSuggestion] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [showThemeSelection, setShowThemeSelection] = useState(true);
   const [itinerary, setItinerary] = useState('');
-  const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState('');
+
+  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
+  const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
+  const [showThemeSelection, setShowThemeSelection] = useState(true);
 
   const handleWeekendClick = (weekend: LongWeekend) => {
     setSelectedWeekend(weekend);
@@ -78,7 +68,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
     setItinerary('');
     setSelectedTheme('');
     setShowThemeSelection(true);
-    setIsGenerating(false);
+    setIsGeneratingSuggestion(false);
     setIsGeneratingItinerary(false);
     setIsDialogOpen(true);
   };
@@ -87,7 +77,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       if (!selectedWeekend) return;
       
       setShowThemeSelection(false);
-      setIsGenerating(true);
+      setIsGeneratingSuggestion(true);
       setItinerary('');
       setIsGeneratingItinerary(false);
       setSelectedTheme(theme);
@@ -113,7 +103,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
         }
         setImageUrl('https://placehold.co/600x400.png');
       } finally {
-        setIsGenerating(false);
+        setIsGeneratingSuggestion(false);
       }
   }
 
@@ -141,7 +131,6 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
         setIsGeneratingItinerary(false);
     }
   }
-
 
   const longWeekends = useMemo(() => {
     const potentialWeekends: LongWeekend[] = [];
@@ -256,208 +245,117 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
 
   return (
     <>
-      <div className="mt-8">
-        <Card className="w-full shadow-lg">
-          <CardHeader>
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Plane className="w-6 h-6 text-primary" />
-              </div>
-              <CardTitle className="font-headline">Perencana Libur Panjang {year}</CardTitle>
+      <Card className="w-full shadow-lg">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-primary/10 rounded-lg">
+              <Plane className="w-6 h-6 text-primary" />
             </div>
-            <div className="pt-4 mt-4 border-t border-border/80">
-                  <p className="text-sm text-muted-foreground mb-3">
-                  Sesuaikan rekomendasi liburan berdasarkan tipe kepegawaian dan jadwal kerja Anda.
-                  </p>
-                  <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+            <CardTitle className="font-headline">Perencana Libur Panjang {year}</CardTitle>
+          </div>
+          <div className="pt-4 mt-4 border-t border-border/80">
+                <p className="text-sm text-muted-foreground mb-3">
+                Sesuaikan rekomendasi liburan berdasarkan tipe kepegawaian dan jadwal kerja Anda.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+                    <div>
+                        <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
+                        <RadioGroup
+                            value={employmentType}
+                            onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
+                            className="flex items-center gap-6 mt-1"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="pns" id="pns" />
+                                <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="private" id="private" />
+                                <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                    <div>
+                        <Label className="text-xs font-semibold text-muted-foreground">Jadwal Kerja</Label>
+                        <RadioGroup
+                            value={workSchedule}
+                            onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
+                            className="flex items-center gap-6 mt-1"
+                        >
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="senin-jumat" id="senin-jumat" />
+                                <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">Senin - Jumat</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
+                                <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">Senin - Sabtu</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
+                </div>
+          </div>
+        </CardHeader>
+        <CardContent className="grid gap-4">
+          {longWeekends.length > 0 ? (
+            longWeekends.map((weekend, index) => (
+              <div 
+                key={index} 
+                onClick={() => handleWeekendClick(weekend)}
+                className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg bg-card hover:bg-secondary/50 transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-3 w-full sm:w-auto">
+                    <div className="flex flex-col items-center justify-center h-16 w-16 bg-primary text-primary-foreground rounded-lg p-2 text-center">
+                        <span className="text-3xl font-bold">{weekend.duration}</span>
+                        <span className="text-xs font-medium leading-tight">HARI</span>
+                    </div>
+                </div>
+                <div className="flex-grow">
+                    <div className="flex justify-between items-start">
                       <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
-                          <RadioGroup
-                              value={employmentType}
-                              onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
-                              className="flex items-center gap-6 mt-1"
-                          >
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="pns" id="pns" />
-                                  <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="private" id="private" />
-                                  <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
-                              </div>
-                          </RadioGroup>
+                        <p className="font-semibold text-foreground">{weekend.title}</p>
+                        <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
                       </div>
-                      <div>
-                          <Label className="text-xs font-semibold text-muted-foreground">Jadwal Kerja</Label>
-                          <RadioGroup
-                              value={workSchedule}
-                              onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
-                              className="flex items-center gap-6 mt-1"
-                          >
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="senin-jumat" id="senin-jumat" />
-                                  <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">Senin - Jumat</Label>
-                              </div>
-                              <div className="flex items-center space-x-2">
-                                  <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
-                                  <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">Senin - Sabtu</Label>
-                              </div>
-                          </RadioGroup>
-                      </div>
-                  </div>
-            </div>
-          </CardHeader>
-          <CardContent className="grid gap-4">
-            {longWeekends.length > 0 ? (
-              longWeekends.map((weekend, index) => (
-                <div 
-                  key={index} 
-                  onClick={() => handleWeekendClick(weekend)}
-                  className="flex flex-col sm:flex-row items-start gap-4 p-4 border rounded-lg bg-card hover:bg-secondary/50 transition-colors cursor-pointer"
-                >
-                  <div className="flex items-center gap-3 w-full sm:w-auto">
-                      <div className="flex flex-col items-center justify-center h-16 w-16 bg-primary text-primary-foreground rounded-lg p-2 text-center">
-                          <span className="text-3xl font-bold">{weekend.duration}</span>
-                          <span className="text-xs font-medium leading-tight">HARI</span>
-                      </div>
-                  </div>
-                  <div className="flex-grow">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-semibold text-foreground">{weekend.title}</p>
-                          <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
-                        </div>
-                        <Badge variant="outline" className="hidden sm:flex items-center gap-1.5 border-primary/50 text-primary/80">
-                          <Sparkles className="w-3.5 h-3.5" />
-                          <span>Lihat Ide</span>
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-2 mt-2 text-sm font-medium text-primary">
-                          <CalendarDays className="w-4 h-4" />
-                          <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
-                      </div>
-                      {weekend.suggestion && (
-                        <div className="mt-2">
-                            <p className="text-xs text-accent-foreground bg-accent rounded-full px-3 py-1 mt-2 inline-block font-semibold">
-                                Saran: {weekend.suggestion}
-                            </p>
-                        </div>
-                      )}
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center text-muted-foreground py-6">
-                <p>Tidak ada potensi libur panjang yang akan datang untuk filter yang dipilih.</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg max-h-[90dvh] flex flex-col">
-          <DialogHeader>
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2.5 bg-primary/10 rounded-lg">
-                <Wand2 className="w-6 h-6 text-primary" />
-              </div>
-              <div>
-                <DialogTitle className="text-xl font-semibold">{selectedWeekend?.title}</DialogTitle>
-                 <p className="text-sm text-muted-foreground">{selectedWeekend?.holidayName}</p>
-              </div>
-            </div>
-             <div className="flex items-center gap-2 text-sm font-medium text-primary/90">
-                <CalendarDays className="w-4 h-4" />
-                <span>{selectedWeekend && formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate)}</span>
-            </div>
-          </DialogHeader>
-          <div className="py-2 space-y-4 overflow-y-auto pr-2">
-            {showThemeSelection && (
-                <div className="animate-in fade-in-50 duration-300">
-                    <p className="text-center font-medium text-foreground mb-4">Pilih tema liburan Anda:</p>
-                    <div className="grid grid-cols-2 gap-3">
-                        {themes.map(theme => (
-                            <Button
-                                key={theme.name}
-                                variant="outline"
-                                className="py-6 flex-col gap-2 h-auto text-base"
-                                onClick={() => handleThemeSelect(theme.name)}
-                            >
-                                <theme.icon className="w-6 h-6 text-primary" />
-                                <span>{theme.name}</span>
-                            </Button>
-                        ))}
+                      <Badge variant="outline" className="hidden sm:flex items-center gap-1.5 border-primary/50 text-primary/80">
+                        <Sparkles className="w-3.5 h-3.5" />
+                        <span>Lihat Ide</span>
+                      </Badge>
                     </div>
-                </div>
-            )}
-
-            {isGenerating && (
-                <div className="space-y-4">
-                     <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
-                        <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
-                            <ImageIcon className="w-14 h-14" />
-                            <p className="font-medium">Membuat gambar inspiratif...</p>
-                        </div>
+                    <div className="flex items-center gap-2 mt-2 text-sm font-medium text-primary">
+                        <CalendarDays className="w-4 h-4" />
+                        <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
                     </div>
-                    <div className="space-y-3 pt-2">
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-full" />
-                        <Skeleton className="h-4 w-4/5" />
-                    </div>
-                </div>
-            )}
-            
-            {!showThemeSelection && !isGenerating && suggestion && (
-                 <div className="space-y-4 animate-in fade-in-50 duration-300">
-                    <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
-                        <img
-                          src={imageUrl}
-                          alt={suggestion.substring(0, 100)}
-                          className="w-full h-full object-cover"
-                        />
-                    </div>
-                    <div className="text-foreground/90">
-                        <p className="text-base leading-relaxed whitespace-pre-wrap">{suggestion}</p>
-                    </div>
-                    
-                    <Separator className="my-2" />
-
-                    {isGeneratingItinerary ? (
-                      <div className="space-y-4 pt-2">
-                          <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-                              <FileText className="w-6 h-6" />
-                              <p className="font-medium">Membuat rencana perjalanan detail...</p>
-                          </div>
-                          <div className="space-y-3 pl-9">
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-full" />
-                              <Skeleton className="h-4 w-4/5" />
-                          </div>
-                      </div>
-                    ) : itinerary ? (
-                      <div className="space-y-3 animate-in fade-in-50">
-                          <h4 className="font-semibold text-lg flex items-center gap-2.5">
-                              <FileText className="w-5 h-5 text-primary" />
-                              Rencana Perjalanan
-                          </h4>
-                          <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
-                            <MarkdownRenderer>{itinerary}</MarkdownRenderer>
-                          </div>
-                      </div>
-                    ) : (
-                      <div className="text-center pt-2">
-                          <Button onClick={handleGenerateItinerary}>
-                              <Sparkles className="mr-2 h-4 w-4" />
-                              Buatkan Rencana Perjalanan
-                          </Button>
+                    {weekend.suggestion && (
+                      <div className="mt-2">
+                          <p className="text-xs text-accent-foreground bg-accent rounded-full px-3 py-1 mt-2 inline-block font-semibold">
+                              Saran: {weekend.suggestion}
+                          </p>
                       </div>
                     )}
                 </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+              </div>
+            ))
+          ) : (
+            <div className="text-center text-muted-foreground py-6">
+              <p>Tidak ada potensi libur panjang yang akan datang untuk filter yang dipilih.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <SuggestionDialog
+        isOpen={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        weekend={selectedWeekend}
+        theme={selectedTheme}
+        onThemeSelect={handleThemeSelect}
+        suggestion={suggestion}
+        imageUrl={imageUrl}
+        itinerary={itinerary}
+        onGenerateItinerary={handleGenerateItinerary}
+        isGeneratingSuggestion={isGeneratingSuggestion}
+        isGeneratingItinerary={isGeneratingItinerary}
+        showThemeSelection={showThemeSelection}
+      />
     </>
   );
 }

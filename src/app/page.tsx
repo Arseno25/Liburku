@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon, Info } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { Calendar as CalendarIcon, Info, Wand2 } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -10,9 +10,36 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Holiday } from '@/types/holiday';
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton';
-import { LongWeekendPlanner } from '@/components/long-weekend-planner';
+import { LongWeekend, LongWeekendPlanner } from '@/components/long-weekend-planner';
+import { Button } from '@/components/ui/button';
+import { SuggestionDialog } from '@/components/suggestion-dialog';
+import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
+import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
+import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
+
+const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+const themes = [ 'Petualangan', 'Relaksasi', 'Kuliner', 'Budaya' ];
+
+const formatDateRange = (startDate: Date, endDate: Date) => {
+    const startDay = dayNames[startDate.getDay()];
+    const startDateNum = startDate.getDate();
+    const startMonth = monthNames[startDate.getMonth()];
+
+    const endDay = dayNames[endDate.getDay()];
+    const endDateNum = endDate.getDate();
+    const endMonth = monthNames[endDate.getMonth()];
+    const endYear = endDate.getFullYear();
+
+    if (startMonth === endMonth) {
+        return `${startDay}, ${startDateNum} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
+    } else {
+        return `${startDay}, ${startDateNum} ${startMonth} - ${endDay}, ${endDateNum} ${endMonth} ${endYear}`;
+    }
+}
 
 export default function Home() {
   const { toast } = useToast();
@@ -20,12 +47,150 @@ export default function Home() {
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
 
+  // State for Instant Inspiration feature
+  const [isInspirationOpen, setIsInspirationOpen] = useState(false);
+  const [isGeneratingInspiration, setIsGeneratingInspiration] = useState(false);
+  const [inspirationResult, setInspirationResult] = useState<{
+    weekend: LongWeekend | null;
+    suggestion: string;
+    imageUrl: string;
+    itinerary: string;
+    theme: string;
+  }>({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
+
+  const upcomingLongWeekends = useMemo(() => {
+      const allUpcoming: LongWeekend[] = [];
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const holidayDates = new Set(holidays.map(h => new Date(h.tanggal.replace(/-/g, '/')).toDateString()));
+
+      const processHolidays = (filteredHolidays: Holiday[], isSaturdayWorkday: boolean) => {
+          let upcomingHolidays = filteredHolidays
+            .map(h => ({ ...h, dateObj: new Date(h.tanggal.replace(/-/g, '/')) }))
+            .filter(h => h.dateObj.getFullYear() === selectedYear && h.dateObj >= today);
+
+          for (const holiday of upcomingHolidays) {
+              const date = holiday.dateObj;
+              const day = date.getDay();
+
+              if (day === 0) continue;
+              if (day === 6 && isSaturdayWorkday) continue;
+              
+              let potentialWeekend: Omit<LongWeekend, 'title'> | null = null;
+              
+              if (day === 1) { // Monday
+                  const weekendEnd = date;
+                  const weekendStart = new Date(date);
+                  let duration;
+                  if (isSaturdayWorkday) { weekendStart.setDate(date.getDate() - 1); duration = 2; } 
+                  else { weekendStart.setDate(date.getDate() - 2); duration = 3; }
+                  potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration: duration };
+              } else if (day === 2) { // Tuesday ("Harpitnas" on Monday)
+                  const monday = new Date(date);
+                  monday.setDate(date.getDate() - 1);
+                  if (!holidayDates.has(monday.toDateString())) {
+                      const weekendEnd = date;
+                      const weekendStart = new Date(date);
+                      let duration;
+                      if (isSaturdayWorkday) { weekendStart.setDate(date.getDate() - 2); duration = 3; } 
+                      else { weekendStart.setDate(date.getDate() - 3); duration = 4; }
+                      potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration, suggestion: 'Ambil cuti pada hari Senin' };
+                  }
+              } else if (day === 4 && !isSaturdayWorkday) { // Thursday ("Harpitnas" on Friday)
+                  const friday = new Date(date);
+                  friday.setDate(date.getDate() + 1);
+                  if (!holidayDates.has(friday.toDateString())) {
+                      const weekendStart = date;
+                      const weekendEnd = new Date(date);
+                      weekendEnd.setDate(date.getDate() + 3);
+                      potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration: 4, suggestion: 'Ambil cuti pada hari Jumat' };
+                  }
+              } else if (day === 5) { // Friday
+                  const weekendStart = date;
+                  const weekendEnd = new Date(date);
+                  let duration, suggestion;
+                  if (isSaturdayWorkday) { weekendEnd.setDate(date.getDate() + 2); duration = 3; suggestion = 'Ambil cuti pada hari Sabtu';} 
+                  else { weekendEnd.setDate(date.getDate() + 2); duration = 3; }
+                  potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration, suggestion };
+              }
+
+              if(potentialWeekend) {
+                  allUpcoming.push({ ...potentialWeekend, title: potentialWeekend.suggestion ? 'Potensi Libur Panjang' : 'Libur Panjang Akhir Pekan'});
+              }
+          }
+      };
+
+      // Process for both schedules to get all possibilities
+      processHolidays(holidays, false); // Senin-Jumat
+      processHolidays(holidays, true);  // Senin-Sabtu
+
+      // Remove duplicates
+      const uniqueWeekends = Array.from(new Map(allUpcoming.map(w => [w.startDate.getTime(), w])).values());
+      return uniqueWeekends.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  }, [holidays, selectedYear]);
+
+  const handleSurpriseMe = async () => {
+    if (upcomingLongWeekends.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Tidak Ditemukan",
+        description: `Tidak ada potensi libur panjang di sisa tahun ${selectedYear}.`,
+      });
+      return;
+    }
+
+    setIsGeneratingInspiration(true);
+    setIsInspirationOpen(true);
+    setInspirationResult({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
+
+    try {
+      const randomWeekend = upcomingLongWeekends[Math.floor(Math.random() * upcomingLongWeekends.length)];
+      const randomTheme = themes[Math.floor(Math.random() * themes.length)];
+
+      const suggestionInput: SuggestActivityInput = {
+        holidayName: randomWeekend.holidayName,
+        duration: randomWeekend.duration,
+        dateRange: formatDateRange(randomWeekend.startDate, randomWeekend.endDate),
+        theme: randomTheme,
+      };
+
+      const suggestionResult = await suggestActivity(suggestionInput);
+      setInspirationResult(prev => ({ ...prev, weekend: randomWeekend, theme: randomTheme, suggestion: suggestionResult.suggestion }));
+      
+      const imageResult = await generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
+      setInspirationResult(prev => ({ ...prev, imageUrl: imageResult.imageUrl }));
+      
+      setIsGeneratingInspiration(false); // Suggestion and image are ready
+
+      const itineraryInput: GenerateItineraryInput = {
+          holidayName: randomWeekend.holidayName,
+          duration: randomWeekend.duration,
+          dateRange: formatDateRange(randomWeekend.startDate, randomWeekend.endDate),
+          theme: randomTheme,
+          suggestion: suggestionResult.suggestion,
+      };
+
+      const itineraryResult = await generateItinerary(itineraryInput);
+      setInspirationResult(prev => ({ ...prev, itinerary: itineraryResult.itinerary }));
+
+    } catch (error) {
+      console.error(error);
+      setIsGeneratingInspiration(false);
+      setIsInspirationOpen(false);
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Tidak dapat menghasilkan inspirasi liburan. Silakan coba lagi.",
+      });
+    }
+  };
+  
   useEffect(() => {
     const fetchHolidays = async () => {
       setLoading(true);
       try {
         const currentYear = new Date().getFullYear();
-        // Use default API endpoint for the current year
         const url = selectedYear === currentYear 
           ? `https://dayoffapi.vercel.app/api`
           : `https://dayoffapi.vercel.app/api?year=${selectedYear}`;
@@ -44,7 +209,7 @@ export default function Home() {
         
       } catch (error) {
         console.error(error);
-        setHolidays([]); // Clear holidays on error
+        setHolidays([]);
         toast({
           variant: "destructive",
           title: "Gagal",
@@ -161,10 +326,52 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        {!loading && holidays.length > 0 && (
-          <LongWeekendPlanner holidays={holidays} year={selectedYear} />
-        )}
+        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+          <div className="lg:col-span-2">
+            {!loading && holidays.length > 0 && (
+              <LongWeekendPlanner holidays={holidays} year={selectedYear} />
+            )}
+          </div>
+          <div className="lg:col-span-1">
+             <Card className="w-full shadow-lg sticky top-8">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-primary/10 rounded-lg">
+                      <Wand2 className="w-6 h-6 text-primary" />
+                    </div>
+                    <CardTitle className="font-headline">Inspirasi Instan</CardTitle>
+                  </div>
+                   <CardDescription>Bingung mau liburan ke mana? Biarkan AI yang merencanakan untuk Anda!</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    size="lg" 
+                    className="w-full"
+                    onClick={handleSurpriseMe}
+                    disabled={isGeneratingInspiration || loading}
+                  >
+                    <Wand2 className="mr-2 h-5 w-5" />
+                    Kejutkan Saya!
+                  </Button>
+                </CardContent>
+              </Card>
+          </div>
+        </div>
+
       </div>
+      
+      <SuggestionDialog
+        isOpen={isInspirationOpen}
+        onOpenChange={setIsInspirationOpen}
+        weekend={inspirationResult.weekend}
+        theme={inspirationResult.theme}
+        suggestion={inspirationResult.suggestion}
+        imageUrl={inspirationResult.imageUrl}
+        itinerary={inspirationResult.itinerary}
+        isGeneratingSuggestion={isGeneratingInspiration}
+        isGeneratingItinerary={!!inspirationResult.suggestion && !inspirationResult.itinerary}
+        showThemeSelection={false}
+      />
     </main>
   );
 }

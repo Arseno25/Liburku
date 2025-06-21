@@ -60,10 +60,14 @@ export default function Home() {
   const { nationalHolidays, collectiveLeave } = useMemo(() => {
     return holidays.reduce(
       (acc, holiday) => {
-        if (holiday.is_cuti) {
-          acc.collectiveLeave += 1;
-        } else {
-          acc.nationalHolidays += 1;
+        const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
+        // Hanya hitung jika bukan hari Minggu (getDay() === 0)
+        if (holidayDate.getDay() !== 0) {
+          if (holiday.is_cuti) {
+            acc.collectiveLeave += 1;
+          } else {
+            acc.nationalHolidays += 1;
+          }
         }
         return acc;
       },
@@ -174,7 +178,7 @@ export default function Home() {
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
                     <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden bg-card">
-                      <CardHeader className="text-center border-b p-4 bg-card">
+                      <CardHeader className="text-center border-b p-4 bg-card/50">
                         <CardTitle className="text-lg font-semibold font-headline text-secondary-foreground">
                           {monthName}
                         </CardTitle>

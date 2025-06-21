@@ -87,26 +87,28 @@ export function ChatInterface({ holidays, year, isMinimized, onMinimizeToggle, o
   return (
     <Card className="w-full h-full flex flex-col rounded-xl overflow-hidden shadow-none border-none">
       <CardHeader 
-        className={`flex flex-row items-center gap-3 flex-shrink-0 pr-20 relative transition-colors ${isMinimized ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+        className={`flex flex-row items-center justify-between gap-3 flex-shrink-0 p-4 border-b bg-muted/50 transition-colors ${isMinimized ? 'cursor-pointer hover:bg-muted' : ''}`}
         onClick={isMinimized ? onMinimizeToggle : undefined}
       >
-        <Avatar>
-            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
-                <Bot className="w-6 h-6"/>
+        <div className="flex items-center gap-3">
+            <Avatar className="h-9 w-9">
+                <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <Bot className="w-5 h-5"/>
+                </div>
+            </Avatar>
+            <div>
+                <CardTitle className="text-base font-semibold">Asisten Liburku</CardTitle>
+                <CardDescription className="flex items-center gap-1.5 mt-1 text-xs">
+                     <span className="relative flex h-2 w-2">
+                        <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                        <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                    </span>
+                    <span>Online</span>
+                </CardDescription>
             </div>
-        </Avatar>
-        <div>
-            <CardTitle>Asisten Liburku</CardTitle>
-            <CardDescription className="flex items-center gap-1.5 mt-1">
-                 <span className="relative flex h-2 w-2">
-                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
-                </span>
-                <span>Online</span>
-            </CardDescription>
         </div>
-        <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center gap-0">
-             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onMinimizeToggle(); }}>
+        <div className="flex items-center gap-0">
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onMinimizeToggle(); }}>
                 {isMinimized ? <ChevronUp className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
                 <span className="sr-only">{isMinimized ? 'Maksimalkan' : 'Minimalkan'}</span>
             </Button>
@@ -119,7 +121,7 @@ export function ChatInterface({ holidays, year, isMinimized, onMinimizeToggle, o
       
       {!isMinimized && (
         <>
-            <CardContent className="flex-grow overflow-hidden flex flex-col">
+            <CardContent className="flex-grow overflow-hidden flex flex-col p-4">
                 <ScrollArea className="h-full pr-4 -mr-4 flex-grow" ref={scrollAreaRef}>
                 <div className="space-y-6 pb-4">
                     {messages.map((message, index) => (
@@ -158,7 +160,7 @@ export function ChatInterface({ holidays, year, isMinimized, onMinimizeToggle, o
                 </div>
                 </ScrollArea>
             </CardContent>
-            <CardFooter className="pt-4 border-t flex-shrink-0">
+            <CardFooter className="pt-4 border-t flex-shrink-0 p-4">
                 <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
                 <Input
                     id="message"

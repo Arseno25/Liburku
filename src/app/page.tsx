@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
@@ -225,7 +226,7 @@ export default function Home() {
   
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:h-auto sm:px-6 sm:py-4">
          <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="w-6 h-6 text-primary" />

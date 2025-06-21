@@ -118,7 +118,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
 
   return (
     <>
-      <div className="w-full transition-opacity flex justify-center duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
+      <div className="w-full transition-opacity flex duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
         <Calendar
           locale={id}
           weekStartsOn={0}

@@ -65,7 +65,7 @@ export function ChatInterface() {
   };
 
   return (
-    <Card className="w-full h-full flex flex-col max-h-[calc(100vh-8rem)]">
+    <Card className="w-full h-full flex flex-col rounded-xl overflow-hidden shadow-none border-none">
       <CardHeader className="flex flex-row items-center gap-3 flex-shrink-0">
         <Avatar>
             <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
@@ -74,7 +74,7 @@ export function ChatInterface() {
         </Avatar>
         <div>
             <CardTitle>Asisten Liburku</CardTitle>
-            <CardDescription>Tanyakan apa saja tentang rencana liburan Anda.</CardDescription>
+            <CardDescription>Tanyakan apa saja.</CardDescription>
         </div>
       </CardHeader>
       <CardContent className="flex-grow overflow-hidden flex flex-col">

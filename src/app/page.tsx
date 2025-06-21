@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot } from 'lucide-react';
-import Link from 'next/link';
+import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot, X } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -15,6 +14,7 @@ import { LongWeekend, LongWeekendPlanner } from '@/components/long-weekend-plann
 import { Button } from '@/components/ui/button';
 import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { WeatherWidget } from '@/components/weather-widget';
+import { ChatInterface } from '@/components/chat-interface';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 
@@ -38,6 +38,9 @@ export default function Home() {
     weekend: LongWeekend | null;
     theme: string;
   }>({ weekend: null, theme: '' });
+
+  // State for floating chat
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
 
   const handleScrollToMonth = useCallback((monthIndex: number) => {
@@ -374,15 +377,23 @@ export default function Home() {
         preselectedTheme={inspirationData.theme}
       />
 
-      <Link
-        href="/chat"
-        passHref
-        className="fixed bottom-6 right-6 z-50 bg-primary text-primary-foreground h-14 w-14 rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-transform hover:scale-110"
-        aria-label="Buka Asisten AI"
-        title="Buka Asisten AI"
+      {/* Floating Chat Widget */}
+      {isChatOpen && (
+        <div className="fixed bottom-24 right-6 z-40 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8.5rem)] bg-card rounded-xl shadow-2xl border flex flex-col animate-in slide-in-from-bottom-5 fade-in-25 duration-300">
+          <ChatInterface />
+        </div>
+      )}
+
+      {/* FAB to toggle chat */}
+      <Button
+        onClick={() => setIsChatOpen(!isChatOpen)}
+        size="icon"
+        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
+        aria-label={isChatOpen ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
+        title={isChatOpen ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
       >
-        <Bot className="h-7 w-7" />
-      </Link>
+        {isChatOpen ? <X className="h-7 w-7" /> : <Bot className="h-7 w-7" />}
+      </Button>
     </main>
   );
 }

@@ -1,24 +1,20 @@
-import { ChatInterface } from "@/components/chat-interface";
-import { ArrowLeft } from 'lucide-react';
+import { Button } from "@/components/ui/button";
 import Link from 'next/link';
-import { Button } from '@/components/ui/button';
+import { ArrowLeft } from "lucide-react";
 
 export default function ChatPage() {
   return (
-    <main className="min-h-screen w-full flex flex-col items-center bg-background p-4 sm:p-6 lg:p-8">
-       <div className="w-full max-w-3xl mx-auto flex flex-col h-full flex-grow">
-            <div className="mb-4 flex-shrink-0">
-                <Button asChild variant="ghost">
-                    <Link href="/">
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Kembali ke Kalender
-                    </Link>
-                </Button>
-            </div>
-            <div className="flex-grow">
-                <ChatInterface />
-            </div>
-       </div>
+    <main className="min-h-screen w-full flex flex-col items-center justify-center bg-background p-4 text-center">
+       <h1 className="text-2xl font-bold mb-4">Fitur Chat Telah Dipindahkan</h1>
+       <p className="text-muted-foreground mb-6 max-w-md">
+         Asisten chat sekarang dapat diakses sebagai widget mengambang melalui tombol di pojok kanan bawah halaman utama.
+       </p>
+       <Button asChild>
+         <Link href="/">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Kembali ke Halaman Utama
+         </Link>
+       </Button>
     </main>
   );
 }

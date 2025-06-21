@@ -266,7 +266,7 @@ export default function Home() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
         <div className="pt-4" />
-        <Card className="w-full p-1 sm:p-3">
+        <Card className="w-full">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
@@ -314,7 +314,7 @@ export default function Home() {
           </CardHeader>
           <CardContent className="p-0">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
                 {Array.from({ length: 12 }).map((_, i) => (
                    <Card key={i}>
                     <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
@@ -328,7 +328,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 p-1">
                 {Array.from({ length: 12 }).map((_, monthIndex) => {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });

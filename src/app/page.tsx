@@ -127,13 +127,13 @@ export default function Home() {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
-                    <Card key={monthIndex} className="flex flex-col">
-                      <CardHeader className="text-center">
-                        <CardTitle className="text-xl font-semibold font-headline">
+                    <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl">
+                      <CardHeader className="text-center border-b p-4">
+                        <CardTitle className="text-lg font-semibold font-headline text-foreground/90">
                           {monthName}
                         </CardTitle>
                       </CardHeader>
-                      <CardContent className="flex justify-center p-0 pb-4">
+                      <CardContent className="flex-grow flex justify-center items-center p-2">
                         <HolidayCalendar
                           month={monthDate}
                           holidays={holidays}
@@ -141,8 +141,9 @@ export default function Home() {
                           fixedWeeks
                           classNames={{
                             caption: 'hidden',
-                            day: "h-8 w-8",
-                            head_cell: "w-8",
+                            table: 'w-full border-collapse space-y-1.5',
+                            day: "h-9 w-9",
+                            head_cell: "w-9 font-medium text-muted-foreground",
                           }}
                         />
                       </CardContent>

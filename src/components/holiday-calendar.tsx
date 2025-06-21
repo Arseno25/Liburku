@@ -35,11 +35,13 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
   const modifiers = {
     nationalHoliday: nationalHolidays,
     jointLeave: jointLeaves,
+    today: new Date(),
   };
 
   const modifiersClassNames = {
     nationalHoliday: 'rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive',
     jointLeave: 'rounded-full bg-warning text-warning-foreground hover:bg-warning/90 focus:bg-warning',
+    today: 'bg-accent text-accent-foreground rounded-full',
   };
 
   const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {

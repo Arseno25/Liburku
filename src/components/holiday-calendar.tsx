@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -90,7 +91,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
         <div
           onClick={() => handleHolidayClick(holiday)}
           className={cn(
-            'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
+            'flex h-9 w-9 cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
             holiday.is_cuti
               ? 'bg-warning text-warning-foreground'
               : 'bg-destructive text-destructive-foreground'
@@ -104,7 +105,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     if (isToday) {
       return (
         <div className={cn(
-          "flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 font-bold",
+          "flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 font-bold",
           isSunday ? "text-destructive" : "text-primary"
         )}>
           {dayNumber}
@@ -114,7 +115,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     
     if (isSunday) {
       return (
-        <div className="flex h-8 w-8 items-center justify-center font-medium text-destructive">
+        <div className="flex h-9 w-9 items-center justify-center font-medium text-destructive">
           {dayNumber}
         </div>
       );

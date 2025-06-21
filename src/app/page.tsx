@@ -243,7 +243,7 @@ export default function Home() {
   };
   
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    <div className="flex min-h-screen w-full flex-col">
       <header className={cn(
           "sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
           scrolled ? "border-border bg-background/80 backdrop-blur-sm" : "border-transparent"
@@ -334,7 +334,7 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col bg-card transition-shadow duration-300 hover:shadow-lg"
+                      className="flex flex-col bg-card/70 transition-shadow duration-300 hover:shadow-lg"
                     >
                       <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
                         <h3 className="text-base font-semibold text-foreground">
@@ -353,8 +353,8 @@ export default function Home() {
                           classNames={{
                             caption: 'hidden',
                             table: 'w-full border-collapse space-y-1',
-                            day: "h-8 w-8 text-xs",
-                            head_cell: "w-8 text-center font-normal text-muted-foreground text-[0.7rem]",
+                            day: "h-9 w-9 p-0 text-xs",
+                            head_cell: "w-9 text-center font-normal text-muted-foreground text-[0.8rem]",
                           }}
                         />
                       </CardContent>

@@ -5,6 +5,7 @@ import { DayContent, DayPickerProps } from 'react-day-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { explainHoliday } from '@/ai/flows/explain-holiday-flow';
+import { Sparkles } from 'lucide-react';
 
 import { Holiday } from '@/types/holiday';
 import { Calendar } from '@/components/ui/calendar';
@@ -97,19 +98,24 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{selectedHoliday?.keterangan}</DialogTitle>
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-primary/10 rounded-lg">
+                <Sparkles className="w-6 h-6 text-primary" />
+              </div>
+              <DialogTitle className="text-xl font-semibold">{selectedHoliday?.keterangan}</DialogTitle>
+            </div>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-2 text-foreground/90">
             {isGenerating ? (
-              <div className="space-y-3">
+              <div className="space-y-3 pt-2">
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-full" />
                 <Skeleton className="h-4 w-4/5" />
               </div>
             ) : (
-              <p className="text-sm leading-relaxed text-muted-foreground">{explanation}</p>
+              <p className="text-base leading-relaxed">{explanation}</p>
             )}
           </div>
         </DialogContent>

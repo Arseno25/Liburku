@@ -134,7 +134,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
             formatWeekdayName: (day) => {
               const dayName = format(day, 'eee', { locale: id });
               if (day.getDay() === 0) {
-                return <span className="font-semibold text-destructive">{dayName}</span>;
+                return <span className="text-destructive">{dayName}</span>;
               }
               return dayName;
             },

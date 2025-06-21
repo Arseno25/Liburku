@@ -1,10 +1,10 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Inter } from "next/font/google";
 import { cn } from '@/lib/utils';
 
-const fontSans = Plus_Jakarta_Sans({
+const fontSans = Inter({
   subsets: ['latin'],
   variable: '--font-sans',
 })

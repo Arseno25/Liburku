@@ -169,7 +169,7 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
 
   return (
     <>
-      <Card className="w-full shadow-sm">
+      <Card className="w-full">
         <CardHeader>
            <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">

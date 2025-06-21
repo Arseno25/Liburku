@@ -258,7 +258,7 @@ export default function Home() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
         <div className="pt-4" />
-        <Card className="w-full shadow-sm">
+        <Card className="w-full">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
@@ -328,7 +328,7 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col transition-shadow duration-300 hover:shadow-md"
+                      className="flex flex-col transition-shadow duration-300 hover:shadow-lg"
                     >
                       <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
                         <CardTitle className="text-base font-semibold text-foreground">
@@ -371,7 +371,7 @@ export default function Home() {
             )}
           </div>
           <div className="lg:col-span-1">
-             <Card className="w-full shadow-sm sticky top-28">
+             <Card className="w-full sticky top-28">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">

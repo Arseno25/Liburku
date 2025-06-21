@@ -75,11 +75,14 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
         dateRange: formatDateRange(weekend.startDate, weekend.endDate),
       };
       
-      const suggestionResult = await suggestActivity(suggestionInput);
+      const suggestionPromise = suggestActivity(suggestionInput);
+      const suggestionResult = await suggestionPromise;
+      
       setSuggestion(suggestionResult.suggestion);
       setIsGeneratingSuggestion(false);
       
-      const imageResult = await generateActivityImage({ activitySuggestion: suggestionResult.suggestion });
+      const imagePromise = generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
+      const imageResult = await imagePromise;
       setImageUrl(imageResult.imageUrl);
 
     } catch (error) {
@@ -326,7 +329,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
           </DialogHeader>
           <div className="py-2 space-y-4">
             <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-              {(isGeneratingSuggestion || isGeneratingImage) ? (
+              {(isGeneratingImage) ? (
                 <Skeleton className="h-full w-full" />
               ) : (
                 <img 

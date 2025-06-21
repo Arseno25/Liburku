@@ -11,7 +11,7 @@ import {ai} from '@/ai/genkit';
 import {z} from 'zod';
 
 const GenerateActivityImageInputSchema = z.object({
-  activitySuggestion: z.string().describe('The text description of the suggested activity.'),
+  imagePrompt: z.string().describe('A concise English prompt to generate an image from.'),
 });
 export type GenerateActivityImageInput = z.infer<typeof GenerateActivityImageInputSchema>;
 
@@ -30,10 +30,10 @@ const generateActivityImageFlow = ai.defineFlow(
     inputSchema: GenerateActivityImageInputSchema,
     outputSchema: GenerateActivityImageOutputSchema,
   },
-  async ({ activitySuggestion }) => {
+  async ({ imagePrompt }) => {
     const { media } = await ai.generate({
       model: 'googleai/gemini-2.0-flash-preview-image-generation',
-      prompt: `Generate a beautiful, vibrant, and inspiring travel photo that illustrates this activity suggestion for a long weekend in Indonesia. The style should be like a professional travel photograph. Do not include any text or logos in the image. Suggestion: "${activitySuggestion}"`,
+      prompt: `${imagePrompt}. The final image should be a beautiful, vibrant, photorealistic travel photo. Do not include any text, words, or logos in the image.`,
       config: {
         responseModalities: ['TEXT', 'IMAGE'],
       },

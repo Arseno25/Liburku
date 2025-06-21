@@ -18,7 +18,8 @@ const SuggestActivityInputSchema = z.object({
 export type SuggestActivityInput = z.infer<typeof SuggestActivityInputSchema>;
 
 const SuggestActivityOutputSchema = z.object({
-  suggestion: z.string().describe('A creative and helpful suggestion for activities or a short trip during the long weekend.'),
+  suggestion: z.string().describe('A creative and helpful suggestion for activities or a short trip during the long weekend in Bahasa Indonesia.'),
+  imagePrompt: z.string().describe('A concise English prompt for an image generation model, based on the suggestion.'),
 });
 export type SuggestActivityOutput = z.infer<typeof SuggestActivityOutputSchema>;
 
@@ -39,7 +40,9 @@ Details of the long weekend:
 - Duration: {{duration}} days
 - Dates: {{dateRange}}
 
-Based on this, provide one exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]".`,
+Based on this, provide two things:
+1.  'suggestion': One exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]".
+2.  'imagePrompt': A concise, descriptive prompt in English for an image generation AI. This prompt should vividly capture the essence of the activity suggestion. For example: "A stunning, professional travel photograph of a pristine white sand beach in Belitung, with giant granite boulders and crystal clear turquoise water under a bright blue sky."`,
 });
 
 

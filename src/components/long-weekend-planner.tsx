@@ -53,6 +53,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
   const [suggestion, setSuggestion] = useState('');
   const [imageHint, setImageHint] = useState('');
+  const [imageUrl, setImageUrl] = useState('');
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
 
 
@@ -65,6 +66,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
     setIsGeneratingSuggestion(true);
     setSuggestion('');
     setImageHint('');
+    setImageUrl('');
 
     try {
       const suggestionInput: SuggestActivityInput = {
@@ -76,9 +78,16 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       setSuggestion(suggestionResult.suggestion);
       setImageHint(suggestionResult.location);
       
+      if (suggestionResult.location) {
+        setImageUrl(`https://source.unsplash.com/600x400/?${encodeURIComponent(suggestionResult.location)},indonesia,travel`);
+      } else {
+        setImageUrl('https://placehold.co/600x400.png');
+      }
+      
     } catch (error) {
       console.error("Gagal menghasilkan saran:", error);
       setSuggestion("Maaf, terjadi kesalahan saat mencoba memberikan ide liburan. Silakan coba lagi nanti.");
+      setImageUrl('https://placehold.co/600x400.png');
     } finally {
         setIsGeneratingSuggestion(false);
     }
@@ -317,7 +326,16 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
           <div className="py-2 space-y-4">
             {selectedWeekend && (
                 <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-                    <img src="https://placehold.co/600x400.png" alt={suggestion.substring(0, 100)} className="w-full h-full object-cover" data-ai-hint={imageHint || 'travel holiday'}/>
+                    {(isGeneratingSuggestion || !imageUrl) ? (
+                        <Skeleton className="h-full w-full" />
+                    ) : (
+                        <img 
+                            src={imageUrl} 
+                            alt={suggestion.substring(0, 100)} 
+                            className="w-full h-full object-cover" 
+                            data-ai-hint={imageHint || 'travel holiday'}
+                        />
+                    )}
                 </div>
             )}
             <div className="text-foreground/90">

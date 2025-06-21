@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot, X } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -41,6 +41,7 @@ export default function Home() {
 
   // State for floating chat
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [isChatMinimized, setIsChatMinimized] = useState(false);
 
 
   const handleScrollToMonth = useCallback((monthIndex: number) => {
@@ -379,21 +380,32 @@ export default function Home() {
 
       {/* Floating Chat Widget */}
       {isChatOpen && (
-        <div className="fixed bottom-24 right-6 z-40 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8.5rem)] bg-card rounded-xl shadow-2xl border flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out">
-          <ChatInterface holidays={holidays} year={selectedYear} />
+        <div className={`fixed bottom-6 right-6 z-40 w-[400px] max-w-[calc(100vw-3rem)] bg-card rounded-xl shadow-2xl border flex flex-col transition-all duration-300 ease-out animate-in fade-in zoom-in-95 slide-in-from-bottom-4 ${isChatMinimized ? 'h-auto' : 'h-[600px] max-h-[calc(100vh-8.5rem)]'}`}>
+          <ChatInterface
+            holidays={holidays}
+            year={selectedYear}
+            isMinimized={isChatMinimized}
+            onMinimizeToggle={() => setIsChatMinimized(!isChatMinimized)}
+            onClose={() => setIsChatOpen(false)}
+          />
         </div>
       )}
 
-      {/* FAB to toggle chat */}
-      <Button
-        onClick={() => setIsChatOpen(!isChatOpen)}
-        size="icon"
-        className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110"
-        aria-label={isChatOpen ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
-        title={isChatOpen ? 'Tutup Asisten AI' : 'Buka Asisten AI'}
-      >
-        {isChatOpen ? <X className="h-7 w-7" /> : <Bot className="h-7 w-7" />}
-      </Button>
+      {/* FAB to open chat */}
+      {!isChatOpen && (
+        <Button
+          onClick={() => {
+            setIsChatOpen(true);
+            setIsChatMinimized(false);
+          }}
+          size="icon"
+          className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110 animate-in fade-in zoom-in-95"
+          aria-label="Buka Asisten AI"
+          title="Buka Asisten AI"
+        >
+          <Bot className="h-7 w-7" />
+        </Button>
+      )}
     </main>
   );
 }

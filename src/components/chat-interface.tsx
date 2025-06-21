@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Bot, LoaderCircle, Send, User } from 'lucide-react';
+import { Bot, LoaderCircle, Send, User, Minus, X, ChevronUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,9 +19,12 @@ interface Message {
 interface ChatInterfaceProps {
   holidays: Holiday[];
   year: number;
+  isMinimized: boolean;
+  onMinimizeToggle: () => void;
+  onClose: () => void;
 }
 
-export function ChatInterface({ holidays, year }: ChatInterfaceProps) {
+export function ChatInterface({ holidays, year, isMinimized, onMinimizeToggle, onClose }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -33,14 +36,14 @@ export function ChatInterface({ holidays, year }: ChatInterfaceProps) {
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Scroll to bottom when messages change
-    if (scrollAreaRef.current) {
+    // Scroll to bottom when messages change, but only if not minimized
+    if (scrollAreaRef.current && !isMinimized) {
         const viewport = scrollAreaRef.current.querySelector('div[data-radix-scroll-area-viewport]');
         if (viewport) {
             viewport.scrollTop = viewport.scrollHeight;
         }
     }
-  }, [messages]);
+  }, [messages, isMinimized]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -83,7 +86,10 @@ export function ChatInterface({ holidays, year }: ChatInterfaceProps) {
 
   return (
     <Card className="w-full h-full flex flex-col rounded-xl overflow-hidden shadow-none border-none">
-      <CardHeader className="flex flex-row items-center gap-3 flex-shrink-0">
+      <CardHeader 
+        className={`flex flex-row items-center gap-3 flex-shrink-0 pr-20 relative transition-colors ${isMinimized ? 'cursor-pointer hover:bg-muted/50' : ''}`}
+        onClick={isMinimized ? onMinimizeToggle : undefined}
+      >
         <Avatar>
             <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Bot className="w-6 h-6"/>
@@ -91,65 +97,86 @@ export function ChatInterface({ holidays, year }: ChatInterfaceProps) {
         </Avatar>
         <div>
             <CardTitle>Asisten Liburku</CardTitle>
-            <CardDescription>Tanyakan apa saja.</CardDescription>
+            <CardDescription className="flex items-center gap-1.5 mt-1">
+                 <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                </span>
+                <span>Online</span>
+            </CardDescription>
+        </div>
+        <div className="absolute top-1/2 -translate-y-1/2 right-3 flex items-center gap-0">
+             <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onMinimizeToggle(); }}>
+                {isMinimized ? <ChevronUp className="h-5 w-5" /> : <Minus className="h-5 w-5" />}
+                <span className="sr-only">{isMinimized ? 'Maksimalkan' : 'Minimalkan'}</span>
+            </Button>
+            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={(e) => { e.stopPropagation(); onClose(); }}>
+                <X className="h-5 w-5" />
+                <span className="sr-only">Tutup</span>
+            </Button>
         </div>
       </CardHeader>
-      <CardContent className="flex-grow overflow-hidden flex flex-col">
-        <ScrollArea className="h-full pr-4 -mr-4 flex-grow" ref={scrollAreaRef}>
-          <div className="space-y-6 pb-4">
-            {messages.map((message, index) => (
-              <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
-                {message.role === 'model' && (
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Bot className="w-5 h-5"/>
+      
+      {!isMinimized && (
+        <>
+            <CardContent className="flex-grow overflow-hidden flex flex-col">
+                <ScrollArea className="h-full pr-4 -mr-4 flex-grow" ref={scrollAreaRef}>
+                <div className="space-y-6 pb-4">
+                    {messages.map((message, index) => (
+                    <div key={index} className={`flex items-start gap-3 text-sm ${message.role === 'user' ? 'justify-end' : ''}`}>
+                        {message.role === 'model' && (
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                <Bot className="w-5 h-5"/>
+                            </div>
+                        </Avatar>
+                        )}
+                        <div className={`max-w-[85%] p-3 rounded-lg ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                            <MarkdownRenderer>{message.content}</MarkdownRenderer>
+                        </div>
+                        {message.role === 'user' && (
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                            <div className="flex h-full w-full items-center justify-center rounded-full bg-secondary text-secondary-foreground">
+                                <User className="w-5 h-5"/>
+                            </div>
+                        </Avatar>
+                        )}
                     </div>
-                  </Avatar>
-                )}
-                <div className={`max-w-[85%] p-3 rounded-lg ${message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
-                    <MarkdownRenderer>{message.content}</MarkdownRenderer>
+                    ))}
+                    {isLoading && (
+                    <div className="flex items-start gap-3">
+                        <Avatar className="w-8 h-8 flex-shrink-0">
+                            <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
+                                <Bot className="w-5 h-5"/>
+                            </div>
+                        </Avatar>
+                        <div className="max-w-[85%] p-3 rounded-lg bg-muted flex items-center">
+                        <LoaderCircle className="w-5 h-5 animate-spin text-muted-foreground" />
+                        </div>
+                    </div>
+                    )}
                 </div>
-                 {message.role === 'user' && (
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <div className="flex h-full w-full items-center justify-center rounded-full bg-secondary text-secondary-foreground">
-                        <User className="w-5 h-5"/>
-                    </div>
-                  </Avatar>
-                )}
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex items-start gap-3">
-                  <Avatar className="w-8 h-8 flex-shrink-0">
-                    <div className="flex h-full w-full items-center justify-center rounded-full bg-primary text-primary-foreground">
-                        <Bot className="w-5 h-5"/>
-                    </div>
-                  </Avatar>
-                <div className="max-w-[85%] p-3 rounded-lg bg-muted flex items-center">
-                  <LoaderCircle className="w-5 h-5 animate-spin text-muted-foreground" />
-                </div>
-              </div>
-            )}
-          </div>
-        </ScrollArea>
-      </CardContent>
-      <CardFooter className="pt-4 border-t flex-shrink-0">
-        <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
-          <Input
-            id="message"
-            placeholder="Ketik pesan Anda..."
-            className="flex-1"
-            autoComplete="off"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            disabled={isLoading}
-          />
-          <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
-            <Send className="h-4 w-4" />
-            <span className="sr-only">Kirim</span>
-          </Button>
-        </form>
-      </CardFooter>
+                </ScrollArea>
+            </CardContent>
+            <CardFooter className="pt-4 border-t flex-shrink-0">
+                <form onSubmit={handleSubmit} className="flex w-full items-center space-x-2">
+                <Input
+                    id="message"
+                    placeholder="Ketik pesan Anda..."
+                    className="flex-1"
+                    autoComplete="off"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    disabled={isLoading}
+                />
+                <Button type="submit" size="icon" disabled={isLoading || !input.trim()}>
+                    <Send className="h-4 w-4" />
+                    <span className="sr-only">Kirim</span>
+                </Button>
+                </form>
+            </CardFooter>
+        </>
+      )}
     </Card>
   );
 }

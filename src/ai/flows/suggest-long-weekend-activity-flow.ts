@@ -19,6 +19,7 @@ export type SuggestActivityInput = z.infer<typeof SuggestActivityInputSchema>;
 
 const SuggestActivityOutputSchema = z.object({
   suggestion: z.string().describe('A creative and helpful suggestion for activities or a short trip during the long weekend.'),
+  location: z.string().describe('The primary location or city mentioned in the suggestion, to be used for finding a relevant image. For example: "Bali", "Yogyakarta", "Raja Ampat".'),
 });
 export type SuggestActivityOutput = z.infer<typeof SuggestActivityOutputSchema>;
 
@@ -39,7 +40,9 @@ Details of the long weekend:
 - Duration: {{duration}} days
 - Dates: {{dateRange}}
 
-Based on this, provide one exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]".`,
+Based on this, provide one exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]".
+
+Also, identify the main location (city or famous natural spot) from your suggestion and provide it in the 'location' field. This location will be used to find a photo.`,
 });
 
 

@@ -5,11 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon } from 'lucide-react';
+import { Plane, CalendarDays, Sparkles, Wand2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
-import { generateActivityImage, GenerateActivityImageInput } from '@/ai/flows/generate-activity-image-flow';
 import { Badge } from '@/components/ui/badge';
 
 interface LongWeekend {
@@ -53,9 +52,8 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
   const [suggestion, setSuggestion] = useState('');
-  const [imageUrl, setImageUrl] = useState('');
+  const [imageHint, setImageHint] = useState('');
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
 
 
   const handleWeekendClick = async (weekend: LongWeekend) => {
@@ -65,12 +63,10 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
 
     // Reset states
     setIsGeneratingSuggestion(true);
-    setIsGeneratingImage(true);
     setSuggestion('');
-    setImageUrl('');
+    setImageHint('');
 
     try {
-      // 1. Generate text suggestion
       const suggestionInput: SuggestActivityInput = {
         holidayName: weekend.holidayName,
         duration: weekend.duration,
@@ -78,26 +74,13 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       };
       const suggestionResult = await suggestActivity(suggestionInput);
       setSuggestion(suggestionResult.suggestion);
-      setIsGeneratingSuggestion(false);
-
-      // 2. Generate image based on the suggestion
-      try {
-        const imageInput: GenerateActivityImageInput = {
-          activitySuggestion: suggestionResult.suggestion,
-        };
-        const imageResult = await generateActivityImage(imageInput);
-        setImageUrl(imageResult.imageUrl);
-      } catch (imageError) {
-        console.error("Gagal menghasilkan gambar:", imageError);
-        // Fail silently on image generation error
-      } finally {
-        setIsGeneratingImage(false);
-      }
+      setImageHint(suggestionResult.location);
+      
     } catch (error) {
       console.error("Gagal menghasilkan saran:", error);
       setSuggestion("Maaf, terjadi kesalahan saat mencoba memberikan ide liburan. Silakan coba lagi nanti.");
-      setIsGeneratingSuggestion(false);
-      setIsGeneratingImage(false);
+    } finally {
+        setIsGeneratingSuggestion(false);
     }
   };
 
@@ -332,18 +315,11 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
             </div>
           </DialogHeader>
           <div className="py-2 space-y-4">
-            {isGeneratingImage || imageUrl ? (
-              <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-                {isGeneratingImage ? (
-                  <div className="flex flex-col items-center gap-2 text-muted-foreground animate-pulse">
-                    <ImageIcon className="w-10 h-10"/>
-                    <p className="text-sm">Membuat gambar...</p>
-                  </div>
-                ) : (
-                  imageUrl && <img src={imageUrl} alt={suggestion.substring(0, 100)} className="w-full h-full object-cover" data-ai-hint="travel holiday"/>
-                )}
-              </div>
-            ) : null }
+            {selectedWeekend && (
+                <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
+                    <img src="https://placehold.co/600x400.png" alt={suggestion.substring(0, 100)} className="w-full h-full object-cover" data-ai-hint={imageHint || 'travel holiday'}/>
+                </div>
+            )}
             <div className="text-foreground/90">
               {isGeneratingSuggestion ? (
                 <div className="space-y-3 pt-2">

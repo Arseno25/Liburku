@@ -237,10 +237,10 @@ export default function Home() {
   };
   
   return (
-    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+    <div className="flex min-h-screen w-full flex-col bg-background">
       <header className={cn(
-          "sticky top-0 z-30 flex h-14 items-center justify-between px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
-          scrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
+          "sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
+          scrolled ? "border-border bg-background/80 backdrop-blur-sm" : "border-transparent"
       )}>
          <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">

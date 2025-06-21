@@ -403,7 +403,7 @@ export default function Home() {
         <div className="container flex items-center justify-center text-sm text-muted-foreground">
             Developer by{' '}
             <a
-                href="https://github.com/arseno-id"
+                href="https://github.com/arseno25"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="ml-1 font-semibold text-primary/90 transition-colors hover:text-primary"

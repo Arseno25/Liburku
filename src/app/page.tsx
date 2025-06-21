@@ -24,36 +24,22 @@ export default function Home() {
   const [displayMonth, setDisplayMonth] = useState<Date>(startOfMonth(new Date()));
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [fetchedKeys, setFetchedKeys] = useState(new Set<string>());
 
   useEffect(() => {
     const fetchHolidays = async () => {
-      const fetchYear = displayMonth.getFullYear();
-      const fetchMonth = displayMonth.getMonth();
-      const fetchKey = `${fetchYear}-${fetchMonth}`;
-
-      if (fetchedKeys.has(fetchKey)) {
-        setLoading(false);
-        return;
-      }
-
       setLoading(true);
       try {
-        const response = await fetch(`https://dayoffapi.vercel.app/api?year=${fetchYear}&month=${fetchMonth + 1}`);
+        const isCurrentYear = parseInt(year) === currentYear;
+        const url = isCurrentYear
+          ? 'https://dayoffapi.vercel.app/api'
+          : `https://dayoffapi.vercel.app/api?year=${year}`;
+          
+        const response = await fetch(url);
         if (!response.ok) {
           throw new Error('Failed to fetch holiday data.');
         }
         const data: Holiday[] = await response.json();
-        
-        setHolidays(prevHolidays => {
-            const newHolidays = data.filter(
-                (h) => !prevHolidays.some((existing) => existing.date === h.date)
-            );
-            return [...prevHolidays, ...newHolidays];
-        });
-        
-        setFetchedKeys(prev => new Set(prev).add(fetchKey));
-
+        setHolidays(data);
       } catch (error) {
         console.error(error);
         toast({
@@ -67,14 +53,11 @@ export default function Home() {
     };
 
     fetchHolidays();
-  }, [displayMonth, toast, fetchedKeys]);
+  }, [year, toast]);
 
   const handleYearChange = (newYear: string) => {
     setYear(newYear);
     const currentMonth = displayMonth.getMonth();
-    // When year changes, reset holidays and fetched keys cache
-    setHolidays([]);
-    setFetchedKeys(new Set());
     setDisplayMonth(new Date(parseInt(newYear), currentMonth, 1));
   };
 
@@ -85,11 +68,6 @@ export default function Home() {
   useEffect(() => {
     const newYear = displayMonth.getFullYear().toString();
     if (newYear !== year) {
-        if (years.includes(newYear)) {
-          // Navigated to a new year via calendar, reset holidays and fetched keys
-          setHolidays([]);
-          setFetchedKeys(new Set());
-        }
         setYear(newYear);
     }
   }, [displayMonth, year]);

@@ -66,10 +66,23 @@ export default function Home() {
     const today = new Date();
     today.setHours(0, 0, 0, 0); // Normalize to the start of the day for accurate comparison
 
-    return holidays.reduce(
+    // De-duplicate holidays to ensure one event per day, giving precedence to national holidays.
+    const uniqueHolidaysMap = new Map<string, Holiday>();
+    for (const holiday of holidays) {
+      const dateStr = holiday.tanggal;
+      const existing = uniqueHolidaysMap.get(dateStr);
+      // Overwrite if no entry exists, or if the existing entry is collective leave and the new one is a national holiday.
+      if (!existing || (existing.is_cuti && !holiday.is_cuti)) {
+        uniqueHolidaysMap.set(dateStr, holiday);
+      }
+    }
+    const uniqueHolidays = Array.from(uniqueHolidaysMap.values());
+
+    return uniqueHolidays.reduce(
       (acc, holiday) => {
+        // Replace hyphens with slashes to avoid timezone issues and treat date as local.
         const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
-        holidayDate.setHours(0, 0, 0, 0);
+        holidayDate.setHours(0, 0, 0, 0); // Also normalize holiday date to start of the day
 
         const isUpcoming = holidayDate >= today;
 

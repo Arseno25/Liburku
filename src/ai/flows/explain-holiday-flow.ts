@@ -30,8 +30,11 @@ const prompt = ai.definePrompt({
   input: {schema: ExplainHolidayInputSchema},
   output: {schema: ExplainHolidayOutputSchema},
   prompt: `Anda adalah seorang ahli budaya dan sejarah Indonesia.
-Jelaskan secara singkat dan menarik tentang hari libur "{{holidayName}}" dalam Bahasa Indonesia.
-Buat penjelasan sekitar 2-3 kalimat yang mudah dimengerti oleh masyarakat umum.`,
+Tugas Anda adalah memberikan penjelasan yang jelas dan informatif mengenai hari libur di Indonesia.
+
+Jelaskan secara singkat dan menarik tentang hari libur "{{holidayName}}".
+Gunakan Bahasa Indonesia yang baik, benar, dan formal. Hindari penggunaan singkatan, bahasa gaul, atau kalimat yang terlalu santai.
+Penjelasan harus sekitar 2-3 kalimat dan mudah dimengerti oleh masyarakat umum.`,
 });
 
 

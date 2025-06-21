@@ -398,6 +398,20 @@ export default function Home() {
           </div>
         </div>
       </main>
+
+      <footer className="border-t bg-background py-5 mt-auto">
+        <div className="container flex items-center justify-center text-sm text-muted-foreground">
+            Developer by{' '}
+            <a
+                href="https://github.com/arseno-id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ml-1 font-semibold text-primary/90 transition-colors hover:text-primary"
+            >
+                Arseno
+            </a>
+        </div>
+      </footer>
       
       <WelcomeDialog isOpen={isWelcomeOpen} onOpenChange={setIsWelcomeOpen} />
 

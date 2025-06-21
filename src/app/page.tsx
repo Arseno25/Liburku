@@ -312,9 +312,9 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-2 sm:p-0">
+          <CardContent className="p-0">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-3">
                 {Array.from({ length: 12 }).map((_, i) => (
                    <Card key={i}>
                     <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
@@ -328,7 +328,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 p-3">
                 {Array.from({ length: 12 }).map((_, monthIndex) => {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
@@ -355,6 +355,7 @@ export default function Home() {
                           classNames={{
                             caption: 'hidden',
                             table: 'w-full border-collapse space-y-1',
+                            cell: "h-9 w-9 text-center text-sm p-0 relative",
                             day: "h-9 w-9 p-0 text-xs",
                             head_cell: "text-muted-foreground w-9 text-center font-semibold text-[0.8rem]",
                           }}
@@ -397,6 +398,7 @@ export default function Home() {
                     className="w-full font-semibold"
                     onClick={handleSurpriseMe}
                     disabled={loading || upcomingLongWeekends.length === 0}
+                    data-magnetic
                   >
                     <Wand2 className="mr-2 h-5 w-5" />
                     Kejutkan Saya!
@@ -454,6 +456,7 @@ export default function Home() {
           className="fixed bottom-6 right-6 z-50 h-14 w-14 rounded-full shadow-lg transition-all duration-300 hover:scale-110 animate-in fade-in zoom-in-95"
           aria-label="Buka Asisten AI"
           title="Buka Asisten AI"
+          data-magnetic
         >
           <Bot className="h-7 w-7" />
         </Button>

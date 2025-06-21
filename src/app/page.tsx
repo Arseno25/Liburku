@@ -344,7 +344,7 @@ export default function Home() {
                           {(monthIndex + 1).toString().padStart(2, '0')}
                         </div>
                       </CardHeader>
-                      <CardContent className="flex-grow flex justify-center items-center p-3">
+                      <CardContent className="flex-grow flex justify-center items-center p-2 pt-0">
                         <HolidayCalendar
                           month={monthDate}
                           holidays={holidays}

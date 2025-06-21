@@ -328,7 +328,7 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col bg-muted/50 dark:bg-popover/30 transition-shadow duration-300 hover:shadow-lg"
+                      className="flex flex-col bg-muted/50 dark:bg-card/10 transition-shadow duration-300 hover:shadow-lg"
                     >
                       <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
                         <CardTitle className="text-base font-semibold text-foreground">

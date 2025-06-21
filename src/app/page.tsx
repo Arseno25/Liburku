@@ -46,6 +46,7 @@ export default function Home() {
   const [selectedYear, setSelectedYear] = useState<number>(new Date().getFullYear());
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [currentDate, setCurrentDate] = useState('');
 
   // State for Instant Inspiration feature
   const [isInspirationOpen, setIsInspirationOpen] = useState(false);
@@ -57,6 +58,17 @@ export default function Home() {
     itinerary: string;
     theme: string;
   }>({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
+
+  useEffect(() => {
+    setCurrentDate(
+        new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        })
+    );
+  }, []);
 
   const upcomingLongWeekends = useMemo(() => {
       const allUpcoming: LongWeekend[] = [];
@@ -236,7 +248,10 @@ export default function Home() {
              <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="w-6 h-6 text-primary" />
              </div>
-             <h1 className="text-2xl sm:text-3xl font-bold font-headline text-foreground">Liburku</h1>
+             <div>
+                <h1 className="text-2xl sm:text-3xl font-bold font-headline text-foreground">Liburku</h1>
+                {currentDate && <p className="text-sm text-muted-foreground">{currentDate}</p>}
+             </div>
           </div>
           <ThemeToggle />
         </header>

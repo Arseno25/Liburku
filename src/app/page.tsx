@@ -57,18 +57,41 @@ export default function Home() {
     fetchHolidays();
   }, [selectedYear, toast]);
 
-  const { nationalHolidays, collectiveLeave } = useMemo(() => {
+  const {
+    totalNationalHolidays,
+    totalCollectiveLeave,
+    upcomingNationalHolidays,
+    upcomingCollectiveLeave,
+  } = useMemo(() => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Normalize to the start of the day for accurate comparison
+
     return holidays.reduce(
       (acc, holiday) => {
+        const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
+        holidayDate.setHours(0, 0, 0, 0);
+
+        const isUpcoming = holidayDate >= today;
+
         if (holiday.is_cuti) {
-          acc.collectiveLeave += 1;
+          acc.totalCollectiveLeave += 1;
+          if (isUpcoming) {
+            acc.upcomingCollectiveLeave += 1;
+          }
         } else {
-          // Hitung semua hari libur nasional, terlepas dari hari apa.
-          acc.nationalHolidays += 1;
+          acc.totalNationalHolidays += 1;
+          if (isUpcoming) {
+            acc.upcomingNationalHolidays += 1;
+          }
         }
         return acc;
       },
-      { nationalHolidays: 0, collectiveLeave: 0 }
+      {
+        totalNationalHolidays: 0,
+        totalCollectiveLeave: 0,
+        upcomingNationalHolidays: 0,
+        upcomingCollectiveLeave: 0,
+      }
     );
   }, [holidays]);
 
@@ -95,7 +118,7 @@ export default function Home() {
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
                 <CardTitle className="font-headline">Kalender Hari Libur Indonesia</CardTitle>
-                <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}.</CardDescription>
+                <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}. Angka di bawah menunjukkan sisa hari dari total hari libur.</CardDescription>
               </div>
               <div className="flex-shrink-0">
                 <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
@@ -137,7 +160,9 @@ export default function Home() {
                                 <Plane className="w-6 h-6 text-destructive" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-foreground">{nationalHolidays}</p>
+                                <p className="text-2xl font-bold text-foreground">
+                                  {upcomingNationalHolidays}<span className="text-lg font-normal text-muted-foreground"> / {totalNationalHolidays}</span>
+                                </p>
                                 <p className="text-sm text-muted-foreground">Hari Libur Nasional</p>
                             </div>
                         </div>
@@ -146,7 +171,9 @@ export default function Home() {
                                 <Briefcase className="w-6 h-6 text-warning" />
                             </div>
                             <div>
-                                <p className="text-2xl font-bold text-foreground">{collectiveLeave}</p>
+                                <p className="text-2xl font-bold text-foreground">
+                                  {upcomingCollectiveLeave}<span className="text-lg font-normal text-muted-foreground"> / {totalCollectiveLeave}</span>
+                                </p>
                                 <p className="text-sm text-muted-foreground">Cuti Bersama</p>
                             </div>
                         </div>

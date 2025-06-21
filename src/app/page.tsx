@@ -17,6 +17,7 @@ import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { WeatherWidget } from '@/components/weather-widget';
 import { ChatInterface } from '@/components/chat-interface';
 import { WelcomeDialog } from '@/components/welcome-dialog';
+import { cn } from '@/lib/utils';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 const themes = [ 'Petualangan', 'Relaksasi', 'Kuliner', 'Budaya' ];
@@ -43,6 +44,17 @@ export default function Home() {
 
   // State for welcome dialog
   const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+
+  // State for scroll detection
+  const [scrolled, setScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 10);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
 
   const handleScrollToMonth = useCallback((monthIndex: number) => {
@@ -226,7 +238,10 @@ export default function Home() {
   
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:h-auto sm:px-6 sm:py-4">
+      <header className={cn(
+          "sticky top-0 z-30 flex h-14 items-center justify-between px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
+          scrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent bg-background"
+      )}>
          <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="w-6 h-6 text-primary" />
@@ -241,7 +256,7 @@ export default function Home() {
             <ThemeToggle />
           </div>
       </header>
-      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
         <Card className="w-full shadow-sm">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>

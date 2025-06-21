@@ -250,7 +250,7 @@ export default function Home() {
              </div>
              <div>
                 <h1 className="text-2xl sm:text-3xl font-bold font-headline text-foreground">Liburku</h1>
-                {currentDate && <p className="text-sm text-muted-foreground">{currentDate}</p>}
+                <p className="text-sm text-muted-foreground">Kalender & Perencana Liburan AI</p>
              </div>
           </div>
           <ThemeToggle />
@@ -278,19 +278,26 @@ export default function Home() {
                 </Select>
               </div>
             </div>
-             <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full bg-destructive/80"></div>
-                <span>Hari Libur Nasional</span>
+             <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-y-2">
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-full bg-destructive/80"></div>
+                  <span>Hari Libur Nasional</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3.5 h-3.5 rounded-full bg-warning/80"></div>
+                  <span>Cuti Bersama</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Info className="w-4 h-4" />
+                  <span>Klik tanggal untuk detail</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3.5 h-3.5 rounded-full bg-warning/80"></div>
-                <span>Cuti Bersama</span>
-              </div>
-              <div className="flex items-center gap-2">
-                 <Info className="w-4 h-4" />
-                <span>Klik tanggal untuk detail</span>
-              </div>
+              {currentDate && (
+                <div className="text-sm font-medium text-muted-foreground">
+                  {currentDate}
+                </div>
+              )}
             </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 bg-secondary/20">

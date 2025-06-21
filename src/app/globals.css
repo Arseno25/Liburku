@@ -61,6 +61,12 @@
     @apply bg-background text-foreground;
     font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  @media (hover: hover) and (pointer: fine) {
+    body, a, button, [role="button"], input, select, textarea {
+      cursor: none;
+    }
+  }
 }
 
 ::view-transition-old(root),

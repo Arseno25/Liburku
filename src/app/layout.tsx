@@ -3,6 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
 import { Inter } from "next/font/google";
 import { cn } from '@/lib/utils';
+import { CustomCursor } from '@/components/custom-cursor';
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -23,6 +24,7 @@ export default function RootLayout({
     <html lang="id" suppressHydrationWarning>
       <head />
       <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
+        <CustomCursor />
         {children}
         <Toaster />
       </body>

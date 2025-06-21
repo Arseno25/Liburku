@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { startOfMonth } from 'date-fns';
 import { Calendar as CalendarIcon } from 'lucide-react';
 
@@ -24,17 +24,36 @@ export default function Home() {
   const [displayMonth, setDisplayMonth] = useState<Date>(startOfMonth(new Date()));
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [fetchedKeys, setFetchedKeys] = useState(new Set<string>());
 
   useEffect(() => {
     const fetchHolidays = async () => {
+      const fetchYear = displayMonth.getFullYear();
+      const fetchMonth = displayMonth.getMonth();
+      const fetchKey = `${fetchYear}-${fetchMonth}`;
+
+      if (fetchedKeys.has(fetchKey)) {
+        setLoading(false);
+        return;
+      }
+
       setLoading(true);
       try {
-        const response = await fetch(`https://dayoffapi.vercel.app/api?year=${year}`);
+        const response = await fetch(`https://dayoffapi.vercel.app/api?year=${fetchYear}&month=${fetchMonth + 1}`);
         if (!response.ok) {
           throw new Error('Failed to fetch holiday data.');
         }
-        const data = await response.json();
-        setHolidays(data);
+        const data: Holiday[] = await response.json();
+        
+        setHolidays(prevHolidays => {
+            const newHolidays = data.filter(
+                (h) => !prevHolidays.some((existing) => existing.date === h.date)
+            );
+            return [...prevHolidays, ...newHolidays];
+        });
+        
+        setFetchedKeys(prev => new Set(prev).add(fetchKey));
+
       } catch (error) {
         console.error(error);
         toast({
@@ -42,18 +61,21 @@ export default function Home() {
           title: "Error",
           description: "Could not fetch holiday data. Please try again later.",
         })
-        setHolidays([]);
       } finally {
         setLoading(false);
       }
     };
 
     fetchHolidays();
-  }, [year, toast]);
+  }, [displayMonth, toast, fetchedKeys]);
 
   const handleYearChange = (newYear: string) => {
     setYear(newYear);
-    setDisplayMonth(new Date(parseInt(newYear), displayMonth.getMonth(), 1));
+    const currentMonth = displayMonth.getMonth();
+    // When year changes, reset holidays and fetched keys cache
+    setHolidays([]);
+    setFetchedKeys(new Set());
+    setDisplayMonth(new Date(parseInt(newYear), currentMonth, 1));
   };
 
   const handleMonthChange = (newMonth: string) => {
@@ -62,7 +84,12 @@ export default function Home() {
   
   useEffect(() => {
     const newYear = displayMonth.getFullYear().toString();
-    if (newYear !== year && years.includes(newYear)) {
+    if (newYear !== year) {
+        if (years.includes(newYear)) {
+          // Navigated to a new year via calendar, reset holidays and fetched keys
+          setHolidays([]);
+          setFetchedKeys(new Set());
+        }
         setYear(newYear);
     }
   }, [displayMonth, year]);

@@ -16,6 +16,7 @@ import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
 import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
+import { WeatherWidget } from '@/components/weather-widget';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 
@@ -281,7 +282,10 @@ export default function Home() {
                 <p className="text-sm text-muted-foreground">Kalender & Perencana Liburan AI</p>
              </div>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-4">
+            <WeatherWidget />
+            <ThemeToggle />
+          </div>
         </header>
 
         <Card className="w-full shadow-lg">

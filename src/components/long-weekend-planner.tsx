@@ -14,6 +14,7 @@ import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-i
 import { Badge } from '@/components/ui/badge';
 import { Button } from './ui/button';
 import { Separator } from './ui/separator';
+import { MarkdownRenderer } from './markdown-renderer';
 
 interface LongWeekend {
   title: string;
@@ -355,7 +356,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg max-h-[90dvh] flex flex-col">
           <DialogHeader>
             <div className="flex items-center gap-3 mb-2">
               <div className="p-2.5 bg-primary/10 rounded-lg">
@@ -371,7 +372,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
                 <span>{selectedWeekend && formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate)}</span>
             </div>
           </DialogHeader>
-          <div className="py-2 space-y-4">
+          <div className="py-2 space-y-4 overflow-y-auto pr-2">
             {showThemeSelection && (
                 <div className="animate-in fade-in-50 duration-300">
                     <p className="text-center font-medium text-foreground mb-4">Pilih tema liburan Anda:</p>
@@ -440,8 +441,8 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
                               <FileText className="w-5 h-5 text-primary" />
                               Rencana Perjalanan
                           </h4>
-                          <div className="text-sm text-foreground/90 bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg whitespace-pre-wrap leading-relaxed font-mono">
-                              {itinerary}
+                          <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                            <MarkdownRenderer>{itinerary}</MarkdownRenderer>
                           </div>
                       </div>
                     ) : (

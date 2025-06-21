@@ -121,7 +121,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       </div>
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
           <DialogHeader>
              <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
@@ -136,7 +136,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
               </Button>
             </div>
           </DialogHeader>
-          <div className="py-2 text-foreground/90">
+          <div className="py-2 text-foreground/90 overflow-y-auto pr-2">
             {isGenerating ? (
               <div className="space-y-3 pt-2">
                 <Skeleton className="h-4 w-full" />

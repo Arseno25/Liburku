@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo, useRef } from 'react';
-import { Calendar as CalendarIcon, Info, Wand2 } from 'lucide-react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { Calendar as CalendarIcon, Info, Wand2, CalendarDays } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -48,6 +48,7 @@ export default function Home() {
   const [loading, setLoading] = useState<boolean>(true);
   const [currentDate, setCurrentDate] = useState('');
   const monthRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const [scrollToMonth, setScrollToMonth] = useState<number | null>(null);
 
   // State for Instant Inspiration feature
   const [isInspirationOpen, setIsInspirationOpen] = useState(false);
@@ -60,12 +61,19 @@ export default function Home() {
     theme: string;
   }>({ weekend: null, suggestion: '', imageUrl: '', itinerary: '', theme: '' });
 
-  const handleScrollToMonth = (monthIndex: number) => {
+  const handleScrollToMonth = useCallback((monthIndex: number) => {
     monthRefs.current[monthIndex]?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    if (scrollToMonth !== null && !loading) {
+      handleScrollToMonth(scrollToMonth);
+      setScrollToMonth(null); // Reset after scrolling
+    }
+  }, [scrollToMonth, loading, handleScrollToMonth]);
 
   useEffect(() => {
     setCurrentDate(
@@ -243,6 +251,18 @@ export default function Home() {
     fetchHolidays();
   }, [selectedYear, toast]);
 
+  const handleGoToToday = () => {
+    const today = new Date();
+    const currentYear = today.getFullYear();
+    const currentMonthIndex = today.getMonth();
+
+    if (selectedYear !== currentYear) {
+      setSelectedYear(currentYear);
+      setScrollToMonth(currentMonthIndex);
+    } else {
+      handleScrollToMonth(currentMonthIndex);
+    }
+  };
 
   const handleYearChange = (newYear: string) => {
     setSelectedYear(parseInt(newYear));
@@ -302,9 +322,15 @@ export default function Home() {
                 </div>
               </div>
               {currentDate && (
-                <div className="text-sm font-medium text-muted-foreground">
-                  {currentDate}
-                </div>
+                <Button 
+                    variant="ghost" 
+                    onClick={handleGoToToday} 
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground h-auto p-1.5 rounded-md"
+                    aria-label="Lompat ke bulan ini"
+                >
+                    <CalendarDays className="w-4 h-4 mr-2" />
+                    {currentDate}
+                </Button>
               )}
             </div>
           </CardHeader>

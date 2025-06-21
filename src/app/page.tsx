@@ -64,48 +64,58 @@ export default function Home() {
     upcomingCollectiveLeave,
   } = useMemo(() => {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // Normalize to the start of the day for accurate comparison
+    today.setHours(0, 0, 0, 0);
 
-    // De-duplicate holidays to ensure one event per day, giving precedence to national holidays.
+    // Calculate raw totals from the full holiday list from the API
+    const rawTotals = holidays.reduce(
+      (acc, holiday) => {
+        if (holiday.is_cuti) {
+          acc.totalCollectiveLeave += 1;
+        } else {
+          acc.totalNationalHolidays += 1;
+        }
+        return acc;
+      },
+      { totalNationalHolidays: 0, totalCollectiveLeave: 0 }
+    );
+    
+    // De-duplicate holidays to ensure one event per day for calendar view and upcoming counts,
+    // giving precedence to national holidays.
     const uniqueHolidaysMap = new Map<string, Holiday>();
     for (const holiday of holidays) {
       const dateStr = holiday.tanggal;
       const existing = uniqueHolidaysMap.get(dateStr);
-      // Overwrite if no entry exists, or if the existing entry is collective leave and the new one is a national holiday.
       if (!existing || (existing.is_cuti && !holiday.is_cuti)) {
         uniqueHolidaysMap.set(dateStr, holiday);
       }
     }
     const uniqueHolidays = Array.from(uniqueHolidaysMap.values());
 
-    return uniqueHolidays.reduce(
+    // Calculate upcoming holidays based on the unique, visible holidays on the calendar
+    const upcomingCounts = uniqueHolidays.reduce(
       (acc, holiday) => {
-        // Replace hyphens with slashes to avoid timezone issues and treat date as local.
         const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
-        holidayDate.setHours(0, 0, 0, 0); // Also normalize holiday date to start of the day
-
+        holidayDate.setHours(0, 0, 0, 0);
         const isUpcoming = holidayDate >= today;
 
-        if (holiday.is_cuti) {
-          acc.totalCollectiveLeave += 1;
-          if (isUpcoming) {
+        if (isUpcoming) {
+          if (holiday.is_cuti) {
             acc.upcomingCollectiveLeave += 1;
-          }
-        } else {
-          acc.totalNationalHolidays += 1;
-          if (isUpcoming) {
+          } else {
             acc.upcomingNationalHolidays += 1;
           }
         }
         return acc;
       },
-      {
-        totalNationalHolidays: 0,
-        totalCollectiveLeave: 0,
-        upcomingNationalHolidays: 0,
-        upcomingCollectiveLeave: 0,
-      }
+      { upcomingNationalHolidays: 0, upcomingCollectiveLeave: 0 }
     );
+
+    return {
+      totalNationalHolidays: rawTotals.totalNationalHolidays,
+      totalCollectiveLeave: rawTotals.totalCollectiveLeave,
+      upcomingNationalHolidays: upcomingCounts.upcomingNationalHolidays,
+      upcomingCollectiveLeave: upcomingCounts.upcomingCollectiveLeave,
+    };
   }, [holidays]);
 
 

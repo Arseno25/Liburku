@@ -61,14 +61,10 @@ export default function Home() {
     return holidays.reduce(
       (acc, holiday) => {
         if (holiday.is_cuti) {
-          // Cuti bersama adalah hari libur tambahan, jadi selalu dihitung.
           acc.collectiveLeave += 1;
         } else {
-          // Hari libur nasional hanya dihitung jika tidak jatuh pada hari Minggu.
-          const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
-          if (holidayDate.getDay() !== 0) {
-            acc.nationalHolidays += 1;
-          }
+          // Hitung semua hari libur nasional, terlepas dari hari apa.
+          acc.nationalHolidays += 1;
         }
         return acc;
       },

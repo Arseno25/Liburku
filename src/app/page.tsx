@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
-import { Calendar as CalendarIcon, Plane, Briefcase } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -57,67 +57,6 @@ export default function Home() {
     fetchHolidays();
   }, [selectedYear, toast]);
 
-  const {
-    totalNationalHolidays,
-    totalCollectiveLeave,
-    upcomingNationalHolidays,
-    upcomingCollectiveLeave,
-  } = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    // Calculate raw totals from the full holiday list from the API
-    const rawTotals = holidays.reduce(
-      (acc, holiday) => {
-        if (holiday.is_cuti) {
-          acc.totalCollectiveLeave += 1;
-        } else {
-          acc.totalNationalHolidays += 1;
-        }
-        return acc;
-      },
-      { totalNationalHolidays: 0, totalCollectiveLeave: 0 }
-    );
-    
-    // De-duplicate holidays to ensure one event per day for calendar view and upcoming counts,
-    // giving precedence to national holidays.
-    const uniqueHolidaysMap = new Map<string, Holiday>();
-    for (const holiday of holidays) {
-      const dateStr = holiday.tanggal;
-      const existing = uniqueHolidaysMap.get(dateStr);
-      if (!existing || (existing.is_cuti && !holiday.is_cuti)) {
-        uniqueHolidaysMap.set(dateStr, holiday);
-      }
-    }
-    const uniqueHolidays = Array.from(uniqueHolidaysMap.values());
-
-    // Calculate upcoming holidays based on the unique, visible holidays on the calendar
-    const upcomingCounts = uniqueHolidays.reduce(
-      (acc, holiday) => {
-        const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
-        holidayDate.setHours(0, 0, 0, 0);
-        const isUpcoming = holidayDate >= today;
-
-        if (isUpcoming) {
-          if (holiday.is_cuti) {
-            acc.upcomingCollectiveLeave += 1;
-          } else {
-            acc.upcomingNationalHolidays += 1;
-          }
-        }
-        return acc;
-      },
-      { upcomingNationalHolidays: 0, upcomingCollectiveLeave: 0 }
-    );
-
-    return {
-      totalNationalHolidays: rawTotals.totalNationalHolidays,
-      totalCollectiveLeave: rawTotals.totalCollectiveLeave,
-      upcomingNationalHolidays: upcomingCounts.upcomingNationalHolidays,
-      upcomingCollectiveLeave: upcomingCounts.upcomingCollectiveLeave,
-    };
-  }, [holidays]);
-
 
   const handleYearChange = (newYear: string) => {
     setSelectedYear(parseInt(newYear));
@@ -141,7 +80,7 @@ export default function Home() {
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
                 <CardTitle className="font-headline">Kalender Hari Libur Indonesia</CardTitle>
-                <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}. Angka di bawah menunjukkan sisa hari dari total hari libur.</CardDescription>
+                <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}.</CardDescription>
               </div>
               <div className="flex-shrink-0">
                 <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
@@ -157,51 +96,6 @@ export default function Home() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-             <div className="border-t border-border/50 pt-4 mt-4 flex flex-col sm:flex-row items-center justify-center gap-6 sm:gap-12 text-center">
-                {loading ? (
-                    <>
-                        <div className="flex items-center gap-4">
-                           <Skeleton className="w-12 h-12 rounded-full" />
-                           <div className="space-y-2">
-                             <Skeleton className="h-6 w-8" />
-                             <Skeleton className="h-4 w-32" />
-                           </div>
-                        </div>
-                         <div className="flex items-center gap-4">
-                           <Skeleton className="w-12 h-12 rounded-full" />
-                           <div className="space-y-2">
-                             <Skeleton className="h-6 w-8" />
-                             <Skeleton className="h-4 w-24" />
-                           </div>
-                        </div>
-                    </>
-                ) : (
-                    <>
-                        <div className="flex items-center gap-4">
-                            <div className="p-3 bg-destructive/10 rounded-full">
-                                <Plane className="w-6 h-6 text-destructive" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">
-                                  {upcomingNationalHolidays}<span className="text-lg font-normal text-muted-foreground"> / {totalNationalHolidays}</span>
-                                </p>
-                                <p className="text-sm text-muted-foreground">Hari Libur Nasional</p>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-4">
-                             <div className="p-3 bg-warning/10 rounded-full">
-                                <Briefcase className="w-6 h-6 text-warning" />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-foreground">
-                                  {upcomingCollectiveLeave}<span className="text-lg font-normal text-muted-foreground"> / {totalCollectiveLeave}</span>
-                                </p>
-                                <p className="text-sm text-muted-foreground">Cuti Bersama</p>
-                            </div>
-                        </div>
-                    </>
-                )}
             </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 bg-secondary/20">

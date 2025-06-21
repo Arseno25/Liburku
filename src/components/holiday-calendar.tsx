@@ -87,10 +87,10 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
         <div
           onClick={() => handleHolidayClick(holiday)}
           className={cn(
-            'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full transition-transform hover:scale-110',
+            'flex h-8 w-8 cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
             holiday.is_cuti
-              ? 'bg-warning/80 text-warning-foreground'
-              : 'bg-destructive/80 text-destructive-foreground'
+              ? 'bg-warning text-warning-foreground'
+              : 'bg-destructive text-destructive-foreground'
           )}
         >
           {dayNumber}
@@ -100,7 +100,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
 
     if (isToday) {
       return (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-accent text-accent-foreground">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 font-bold text-primary">
           {dayNumber}
         </div>
       );

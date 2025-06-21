@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from './ui/button';
@@ -9,14 +9,6 @@ import { MarkdownRenderer } from './markdown-renderer';
 import { LongWeekend } from './long-weekend-planner';
 import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack, Wallet } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { Pie, PieChart, Cell } from 'recharts';
-import {
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartConfig,
-} from '@/components/ui/chart';
 
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
@@ -59,11 +51,6 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
-interface BudgetState {
-  markdown: string;
-  breakdown: { category: string; value: number }[];
-}
-
 export function SuggestionDialog({
     isOpen,
     onOpenChange,
@@ -78,7 +65,7 @@ export function SuggestionDialog({
     const [imageUrl, setImageUrl] = useState('');
     const [itinerary, setItinerary] = useState('');
     const [packingList, setPackingList] = useState('');
-    const [budget, setBudget] = useState<BudgetState>({ markdown: '', breakdown: [] });
+    const [budget, setBudget] = useState('');
 
     // State flags
     const [showThemeSelection, setShowThemeSelection] = useState(true);
@@ -93,7 +80,7 @@ export function SuggestionDialog({
         setImageUrl('');
         setItinerary('');
         setPackingList('');
-        setBudget({ markdown: '', breakdown: [] });
+        setBudget('');
         setShowThemeSelection(true);
         setIsGeneratingSuggestion(false);
         setIsGeneratingItinerary(false);
@@ -173,7 +160,7 @@ export function SuggestionDialog({
         if (!weekend || !suggestion || !itinerary || !theme) return;
 
         setIsGeneratingBudget(true);
-        setBudget({ markdown: '', breakdown: [] });
+        setBudget('');
         try {
             const budgetInput: EstimateTripBudgetInput = {
                 duration: weekend.duration,
@@ -182,10 +169,10 @@ export function SuggestionDialog({
                 itinerary: itinerary,
             };
             const result = await estimateTripBudget(budgetInput);
-            setBudget({ markdown: result.markdownBudget, breakdown: result.budgetBreakdown });
+            setBudget(result.markdownBudget);
         } catch (error) {
             console.error("Gagal membuat estimasi anggaran:", error);
-            setBudget({ markdown: "Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.", breakdown: [] });
+            setBudget("Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.");
         } finally {
             setIsGeneratingBudget(false);
         }
@@ -212,26 +199,8 @@ export function SuggestionDialog({
         }
     };
 
-    const chartConfig = useMemo(() => {
-        const config: ChartConfig = {
-            value: {
-                label: 'Anggaran',
-            },
-        };
-        if (budget.breakdown.length > 0) {
-            budget.breakdown.forEach((item, index) => {
-                config[item.category] = {
-                    label: item.category,
-                    color: `hsl(var(--chart-${index + 1}))`,
-                };
-            });
-        }
-        return config;
-    }, [budget.breakdown]);
-
-
     const isSuggestionReady = !showThemeSelection && !isGeneratingSuggestion && suggestion;
-    const isBudgetReady = budget.markdown && budget.breakdown.length > 0;
+    const isBudgetReady = !!budget;
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -275,7 +244,7 @@ export function SuggestionDialog({
 
                     {isGeneratingSuggestion && (
                         <div className="space-y-4">
-                            <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
+                            <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
                                 <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
                                     <ImageIcon className="w-14 h-14" />
                                     <p className="font-medium">Membuat gambar inspiratif...</p>
@@ -291,7 +260,7 @@ export function SuggestionDialog({
                     
                     {isSuggestionReady && (
                          <div className="space-y-4 animate-in fade-in-50 duration-300">
-                            <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
+                            <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
                                 <img
                                     src={imageUrl}
                                     alt={suggestion.substring(0, 100)}
@@ -323,7 +292,7 @@ export function SuggestionDialog({
                                             <FileText className="w-5 h-5 text-primary" />
                                             Rencana Perjalanan
                                         </h4>
-                                        <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                        <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
                                             <MarkdownRenderer>{itinerary}</MarkdownRenderer>
                                         </div>
                                     </div>
@@ -337,35 +306,19 @@ export function SuggestionDialog({
                                                 <Wallet className="w-6 h-6" />
                                                 <p className="font-medium">Menyusun estimasi anggaran...</p>
                                             </div>
-                                            <div className="flex flex-col items-center gap-4">
-                                                <Skeleton className="h-[250px] w-[250px] rounded-full" />
+                                            <div className="pl-9 space-y-2">
                                                 <Skeleton className="h-4 w-full" />
                                                 <Skeleton className="h-4 w-4/5" />
                                             </div>
                                         </div>
                                     ) : isBudgetReady ? (
                                         <div className="animate-in fade-in-50">
-                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-3">
+                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
                                                 <Wallet className="w-5 h-5 text-primary" />
-                                                Estimasi & Alokasi Anggaran
+                                                Estimasi Anggaran
                                             </h4>
-                                            <div className='grid md:grid-cols-2 gap-6 items-center'>
-                                                <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
-                                                    <MarkdownRenderer>{budget.markdown}</MarkdownRenderer>
-                                                </div>
-                                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[250px]">
-                                                    <PieChart>
-                                                        <ChartTooltip
-                                                            formatter={(value, name) => `${name}: Rp${Number(value).toLocaleString('id-ID')}`}
-                                                            content={<ChartTooltipContent hideLabel />}
-                                                        />
-                                                        <Pie data={budget.breakdown} dataKey="value" nameKey="category" innerRadius={60} strokeWidth={2}>
-                                                            {budget.breakdown.map((_, index) => (
-                                                                <Cell key={`cell-${index}`} fill={`var(--chart-${index + 1})`} className="stroke-background focus:outline-none" />
-                                                            ))}
-                                                        </Pie>
-                                                    </PieChart>
-                                                </ChartContainer>
+                                            <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
+                                                <MarkdownRenderer>{budget}</MarkdownRenderer>
                                             </div>
                                         </div>
                                     ) : (
@@ -399,7 +352,7 @@ export function SuggestionDialog({
                                                         <Backpack className="w-5 h-5 text-primary" />
                                                         Daftar Barang Bawaan
                                                     </h4>
-                                                    <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                                    <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
                                                         <MarkdownRenderer>{packingList}</MarkdownRenderer>
                                                     </div>
                                                 </div>

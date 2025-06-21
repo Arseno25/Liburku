@@ -1,10 +1,17 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import { Plus_Jakarta_Sans } from "next/font/google";
+import { cn } from '@/lib/utils';
+
+const fontSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
 
 export const metadata: Metadata = {
   title: 'Liburku - Kalender Hari Libur Indonesia',
-  description: 'Jelajahi hari libur nasional dan cuti bersama dengan kalender interaktif.',
+  description: 'Jelajahi hari libur nasional dan cuti bersama dengan kalender interaktif dan perencana liburan AI.',
 };
 
 export default function RootLayout({
@@ -14,12 +21,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="id" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap" rel="stylesheet" />
-      </head>
-      <body className="font-body antialiased">
+      <head />
+      <body className={cn("min-h-screen bg-background font-sans antialiased", fontSans.variable)}>
         {children}
         <Toaster />
       </body>

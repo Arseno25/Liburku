@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot } from 'lucide-react';
+import { Calendar as CalendarIcon, Wand2, CalendarDays, Bot } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -18,10 +18,6 @@ import { ChatInterface } from '@/components/chat-interface';
 import { WelcomeDialog } from '@/components/welcome-dialog';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
-
-const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-const monthNames = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-
 const themes = [ 'Petualangan', 'Relaksasi', 'Kuliner', 'Budaya' ];
 
 export default function Home() {
@@ -228,30 +224,29 @@ export default function Home() {
   };
   
   return (
-    <main className="min-h-screen w-full flex flex-col items-center bg-background p-4 sm:p-6 lg:p-8">
-      <div className="w-full max-w-7xl mx-auto">
-        <header className="flex justify-between items-center mb-6">
-          <div className="flex items-center gap-3">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+         <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="w-6 h-6 text-primary" />
              </div>
              <div>
-                <h1 className="text-2xl sm:text-3xl font-bold font-headline text-foreground">Liburku</h1>
-                <p className="text-sm text-muted-foreground">Kalender & Perencana Liburan AI</p>
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground">Liburku</h1>
+                <p className="text-xs text-muted-foreground">Kalender & Perencana Liburan AI</p>
              </div>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="ml-auto flex items-center gap-4">
             <WeatherWidget />
             <ThemeToggle />
           </div>
-        </header>
-
-        <Card className="w-full shadow-lg">
+      </header>
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-0 md:gap-8">
+        <Card className="w-full shadow-sm">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
-                <CardTitle className="font-headline">Kalender Hari Libur Indonesia</CardTitle>
-                <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}.</CardDescription>
+                <CardTitle className="text-2xl">Kalender Libur {selectedYear}</CardTitle>
+                <CardDescription>Jelajahi hari libur nasional dan cuti bersama. Klik tanggal untuk detail.</CardDescription>
               </div>
               <div className="flex-shrink-0">
                 <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
@@ -268,26 +263,22 @@ export default function Home() {
                 </Select>
               </div>
             </div>
-             <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center justify-between gap-y-2">
+             <div className="pt-4 mt-4 border-t flex flex-wrap items-center justify-between gap-y-2">
               <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
                 <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-destructive/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-destructive"></div>
                   <span>Hari Libur Nasional</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <div className="w-3.5 h-3.5 rounded-full bg-warning/80"></div>
+                  <div className="w-3 h-3 rounded-full bg-warning"></div>
                   <span>Cuti Bersama</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Info className="w-4 h-4" />
-                  <span>Klik tanggal untuk detail</span>
                 </div>
               </div>
               {currentDate && (
                 <Button 
                     variant="ghost" 
                     onClick={handleGoToToday} 
-                    className="text-sm font-medium text-muted-foreground hover:text-foreground h-auto p-1.5 rounded-md"
+                    className="text-sm font-medium h-auto p-1.5 rounded-md"
                     aria-label="Lompat ke bulan ini"
                 >
                     <CalendarDays className="w-4 h-4 mr-2" />
@@ -319,10 +310,10 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden bg-card border"
+                      className="flex flex-col transition-shadow duration-300 hover:shadow-md overflow-hidden bg-card"
                     >
-                      <CardHeader className="text-center border-b p-4 bg-muted/50">
-                        <CardTitle className="text-lg font-semibold font-headline text-secondary-foreground">
+                      <CardHeader className="text-center p-3 border-b">
+                        <CardTitle className="text-base font-semibold text-foreground">
                           {monthName}
                         </CardTitle>
                       </CardHeader>
@@ -336,7 +327,7 @@ export default function Home() {
                             caption: 'hidden',
                             table: 'w-full border-collapse space-y-1.5',
                             day: "h-9 w-9",
-                            head_cell: "w-9 font-medium text-muted-foreground",
+                            head_cell: "w-9 font-normal text-muted-foreground",
                           }}
                         />
                       </CardContent>
@@ -348,7 +339,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <div className="mt-8 grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 md:gap-8 items-start">
           <div className="lg:col-span-2">
             {!loading && holidays.length > 0 && (
               <LongWeekendPlanner 
@@ -359,22 +350,24 @@ export default function Home() {
             )}
           </div>
           <div className="lg:col-span-1">
-             <Card className="w-full shadow-lg sticky top-8">
+             <Card className="w-full shadow-sm sticky top-20">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
                       <Wand2 className="w-6 h-6 text-primary" />
                     </div>
-                    <CardTitle className="font-headline">Inspirasi Instan</CardTitle>
+                    <div>
+                      <CardTitle className="text-lg">Inspirasi Instan</CardTitle>
+                      <CardDescription>Biarkan AI merencanakan untuk Anda!</CardDescription>
+                    </div>
                   </div>
-                   <CardDescription>Bingung mau liburan ke mana? Biarkan AI yang merencanakan untuk Anda!</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     size="lg" 
-                    className="w-full"
+                    className="w-full font-semibold"
                     onClick={handleSurpriseMe}
-                    disabled={loading}
+                    disabled={loading || upcomingLongWeekends.length === 0}
                   >
                     <Wand2 className="mr-2 h-5 w-5" />
                     Kejutkan Saya!
@@ -383,8 +376,7 @@ export default function Home() {
               </Card>
           </div>
         </div>
-
-      </div>
+      </main>
       
       <WelcomeDialog isOpen={isWelcomeOpen} onOpenChange={setIsWelcomeOpen} />
 
@@ -423,6 +415,6 @@ export default function Home() {
           <Bot className="h-7 w-7" />
         </Button>
       )}
-    </main>
+    </div>
   );
 }

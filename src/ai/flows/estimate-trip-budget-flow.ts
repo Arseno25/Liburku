@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview A flow to generate a trip budget estimate with chart data.
+ * @fileOverview A flow to generate a trip budget estimate.
  *
  * - estimateTripBudget - A function that creates a budget based on trip details.
  * - EstimateTripBudgetInput - The input type for the estimateTripBudget function.
@@ -18,14 +18,8 @@ const EstimateTripBudgetInputSchema = z.object({
 });
 export type EstimateTripBudgetInput = z.infer<typeof EstimateTripBudgetInputSchema>;
 
-const BudgetItemSchema = z.object({
-  category: z.string().describe('Nama kategori anggaran (misalnya, "Akomodasi", "Transportasi Lokal", "Makan & Minum", "Aktivitas & Tiket Masuk", "Lain-lain").'),
-  value: z.number().describe('Estimasi nilai tengah (average) untuk kategori ini dalam Rupiah untuk keseluruhan perjalanan. Contoh: 500000.'),
-});
-
 const EstimateTripBudgetOutputSchema = z.object({
   markdownBudget: z.string().describe('Estimasi anggaran yang terperinci dan dikategorikan dalam format Markdown.'),
-  budgetBreakdown: z.array(BudgetItemSchema).describe('Rincian anggaran terstruktur untuk visualisasi diagram. Jangan sertakan item "Total" dalam array ini.'),
 });
 export type EstimateTripBudgetOutput = z.infer<typeof EstimateTripBudgetOutputSchema>;
 
@@ -46,20 +40,15 @@ Here are the trip details:
 - Itinerary:
 {{itinerary}}
 
-Based on all this information, generate two things:
-1.  'markdownBudget': A detailed budget estimate in simple Markdown.
-    -   All currency must be in Indonesian Rupiah (Rp).
-    -   Organize into "Akomodasi", "Transportasi Lokal", "Makan & Minum", "Aktivitas & Tiket Masuk", and "Lain-lain (Oleh-oleh, dll.)". Use headings for each category.
-    -   Provide a realistic price range per day or per trip (e.g., "Akomodasi: Rp 300.000 - Rp 800.000 / malam").
-    -   Infer the location from the "Trip Idea".
-    -   Base your estimates on the activities mentioned in the itinerary and the overall theme.
-    -   Provide a "Total Estimasi Per Orang" (Estimated Total Per Person) at the end, summarizing the total cost range for the entire trip, excluding flights to the location.
-    -   Add a disclaimer that these are estimates and prices can vary.
-    -   Keep the language in Bahasa Indonesia.
-
-2.  'budgetBreakdown': A structured array for a chart.
-    -   For each category from part 1, calculate an average representative value in Rupiah for the entire trip. For example, if the range is Rp 300.000 - Rp 500.000, use a value like 400000.
-    -   Do not include a "Total" item in this array.
+Based on all this information, generate 'markdownBudget': a detailed budget estimate in simple Markdown.
+-   All currency must be in Indonesian Rupiah (Rp).
+-   Organize into "Akomodasi", "Transportasi Lokal", "Makan & Minum", "Aktivitas & Tiket Masuk", and "Lain-lain (Oleh-oleh, dll.)". Use headings for each category.
+-   Provide a realistic price range per day or per trip (e.g., "Akomodasi: Rp 300.000 - Rp 800.000 / malam").
+-   Infer the location from the "Trip Idea".
+-   Base your estimates on the activities mentioned in the itinerary and the overall theme.
+-   Provide a "Total Estimasi Per Orang" (Estimated Total Per Person) at the end, summarizing the total cost range for the entire trip, excluding flights to the location.
+-   Add a disclaimer that these are estimates and prices can vary.
+-   Keep the language in Bahasa Indonesia.
 `,
 });
 

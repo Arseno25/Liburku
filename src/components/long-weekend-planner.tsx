@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
@@ -169,25 +169,25 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
 
   return (
     <>
-      <Card className="w-full shadow-lg">
+      <Card className="w-full shadow-sm">
         <CardHeader>
-          <div className="flex items-center gap-3">
+           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <Plane className="w-6 h-6 text-primary" />
             </div>
-            <CardTitle className="font-headline">Perencana Libur Panjang {year}</CardTitle>
+            <div>
+              <CardTitle className="text-lg">Perencana Libur Panjang {year}</CardTitle>
+              <CardDescription>Sesuaikan rekomendasi berdasarkan jadwal Anda.</CardDescription>
+            </div>
           </div>
-          <div className="pt-4 mt-4 border-t border-border/80">
-                <p className="text-sm text-muted-foreground mb-3">
-                Sesuaikan rekomendasi liburan berdasarkan tipe kepegawaian dan jadwal kerja Anda.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 sm:gap-8">
+          <div className="pt-4 mt-4 border-t">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                         <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
                         <RadioGroup
                             value={employmentType}
                             onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
-                            className="flex items-center gap-6 mt-1"
+                            className="flex items-center gap-4 mt-2"
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="pns" id="pns" />
@@ -204,15 +204,15 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
                         <RadioGroup
                             value={workSchedule}
                             onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
-                            className="flex items-center gap-6 mt-1"
+                            className="flex items-center gap-4 mt-2"
                         >
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="senin-jumat" id="senin-jumat" />
-                                <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">Senin - Jumat</Label>
+                                <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">5 Hari Kerja</Label>
                             </div>
                             <div className="flex items-center space-x-2">
                                 <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
-                                <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">Senin - Sabtu</Label>
+                                <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">6 Hari Kerja</Label>
                             </div>
                         </RadioGroup>
                     </div>
@@ -225,25 +225,25 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
               <div
                 key={index}
                 onClick={() => handleWeekendClick(weekend)}
-                className="p-4 border rounded-lg bg-card hover:border-primary/70 hover:shadow-lg transition-all cursor-pointer group"
+                className="p-4 border rounded-lg bg-card hover:bg-accent/50 hover:border-primary/50 transition-all cursor-pointer group"
               >
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex-grow">
-                        <p className="font-semibold text-foreground group-hover:text-primary transition-colors">{weekend.title}</p>
+                        <p className="font-semibold text-primary">{weekend.title}</p>
                         <p className="text-sm text-muted-foreground">{weekend.holidayName}</p>
                     </div>
-                    <div className="flex flex-col items-center justify-center shrink-0 h-16 w-16 bg-primary/10 text-primary rounded-lg p-2 text-center border border-primary/20 group-hover:bg-primary/20 transition-colors">
+                    <div className="flex flex-col items-center justify-center shrink-0 h-16 w-16 bg-muted text-foreground rounded-lg p-2 text-center border group-hover:bg-primary/10 group-hover:text-primary transition-colors">
                         <span className="text-3xl font-bold">{weekend.duration}</span>
                         <span className="text-xs font-medium leading-tight">HARI</span>
                     </div>
                 </div>
                 <div className="flex items-center gap-2 mt-3 text-sm font-medium text-muted-foreground">
-                    <CalendarDays className="w-4 h-4 text-primary/80" />
+                    <CalendarDays className="w-4 h-4" />
                     <span>{formatDateRange(weekend.startDate, weekend.endDate)}</span>
                 </div>
                 {weekend.suggestion && (
                     <div className="mt-3 pt-3 border-t border-dashed">
-                        <p className="text-xs text-accent-foreground bg-accent/90 rounded-full px-3 py-1 mt-2 inline-block font-semibold">
+                        <p className="text-xs text-orange-600 bg-orange-100 dark:bg-orange-900/50 dark:text-orange-400 rounded-full px-3 py-1 mt-2 inline-block font-semibold">
                             Saran: {weekend.suggestion}
                         </p>
                     </div>
@@ -252,7 +252,7 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
             ))
           ) : (
             <div className="text-center text-muted-foreground py-6">
-              <p>Tidak ada potensi libur panjang yang akan datang untuk filter yang dipilih.</p>
+              <p>Tidak ada potensi libur panjang untuk filter yang dipilih.</p>
             </div>
           )}
         </CardContent>

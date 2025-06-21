@@ -334,7 +334,7 @@ export default function Home() {
                         <CardTitle className="text-base font-semibold text-foreground">
                           {monthName}
                         </CardTitle>
-                         <div className="text-2xl font-bold text-primary/20 select-none">
+                         <div className="text-2xl font-bold text-primary/10 select-none">
                           {(monthIndex + 1).toString().padStart(2, '0')}
                         </div>
                       </CardHeader>

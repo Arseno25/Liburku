@@ -19,6 +19,7 @@ const MessageSchema = z.object({
 const ChatInputSchema = z.object({
   history: z.array(MessageSchema).describe('The conversation history.'),
   message: z.string().describe('The latest user message.'),
+  currentDate: z.string().describe("The current date to provide context to the assistant."),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -37,6 +38,8 @@ const prompt = ai.definePrompt({
   output: { schema: ChatOutputSchema },
   tools: [findLocalEvents],
   prompt: `You are 'Asisten Liburku', a friendly and highly capable AI travel assistant for Indonesia. Your goal is to help users plan their holidays.
+
+For your reference, today's date is {{currentDate}}. Use this information if the user asks about dates, schedules, or planning in the near future.
 
 You can answer questions about Indonesian holidays, suggest travel ideas, create detailed itineraries, and find local events.
 

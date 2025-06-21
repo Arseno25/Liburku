@@ -47,10 +47,19 @@ export function ChatInterface() {
 
     try {
         const chatHistory = messages.map(m => ({ role: m.role, content: m.content }));
+        const currentDate = new Date().toLocaleDateString('id-ID', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+        });
+        
         const chatInput: ChatInput = {
             history: chatHistory,
             message: input,
+            currentDate: currentDate,
         };
+
         const result = await chatWithAssistant(chatInput);
         const modelMessage: Message = { role: 'model', content: result.response };
         setMessages((prev) => [...prev, modelMessage]);

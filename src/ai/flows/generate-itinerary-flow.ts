@@ -9,9 +9,10 @@
 
 import { ai } from '@/ai/genkit';
 import { z } from 'zod';
+import { findLocalEvents } from '@/ai/tools/find-local-events-tool';
 
 const GenerateItineraryInputSchema = z.object({
-  suggestion: z.string().describe('The travel/activity suggestion text that this itinerary should be based on.'),
+  suggestion: z.string().describe('The travel/activity suggestion text that this itinerary should be based on. It contains the location.'),
   duration: z.number().describe('The total duration of the trip in days.'),
   dateRange: z.string().describe('The date range of the trip.'),
   theme: z.string().describe('The theme of the trip (e.g., Adventure, Relaxation).'),
@@ -32,6 +33,7 @@ const prompt = ai.definePrompt({
   name: 'generateItineraryPrompt',
   input: { schema: GenerateItineraryInputSchema },
   output: { schema: GenerateItineraryOutputSchema },
+  tools: [findLocalEvents],
   prompt: `You are a professional travel planner for Indonesia. Your task is to create a detailed, day-by-day travel itinerary.
 
 Here are the trip details:
@@ -41,13 +43,17 @@ Here are the trip details:
 - Theme: {{theme}}
 - Core Idea: "{{suggestion}}"
 
-Based on this information, generate a practical and exciting itinerary.
-- Structure the output in simple Markdown.
-- Use a heading (e.g., "Hari 1: ...") for each day.
-- Under each day, provide bullet points for suggested activities (morning, afternoon, evening).
-- Include recommendations for places to eat (breakfast, lunch, dinner) that fit the theme.
-- Keep the language in Bahasa Indonesia.
-- Make it sound helpful and inspiring.
+Follow these steps:
+1.  First, determine the primary location from the "Core Idea" (e.g., if the idea is "Petualangan Seru di Bromo", the location is "Bromo").
+2.  Next, use the 'findLocalEvents' tool to check if there are any special events, festivals, or attractions happening in that location during the trip.
+3.  Then, generate a practical and exciting itinerary.
+    - If the tool found any events, integrate them naturally into the daily plan. For example: "Sore: Menyaksikan parade Ogoh-ogoh di pusat kota." or "Pagi: Mengunjungi Festival Sekaten di Alun-Alun Utara."
+    - Structure the output in simple Markdown.
+    - Use a heading (e.g., "Hari 1: ...") for each day.
+    - Under each day, provide bullet points for suggested activities (morning, afternoon, evening).
+    - Include recommendations for places to eat (breakfast, lunch, dinner) that fit the theme.
+    - Keep the language in Bahasa Indonesia.
+    - Make it sound helpful and inspiring.
 `,
 });
 

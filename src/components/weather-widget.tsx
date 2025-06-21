@@ -165,7 +165,7 @@ export function WeatherWidget() {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
+      <div className="hidden sm:flex items-center gap-3">
         <Skeleton className="w-8 h-8 rounded-full" />
         <div className="flex flex-col gap-1.5">
             <Skeleton className="w-24 h-4 rounded-md" />
@@ -177,7 +177,7 @@ export function WeatherWidget() {
 
   if (error) {
     return (
-        <div className="flex items-center gap-2 text-sm text-muted-foreground" title={error}>
+        <div className="hidden sm:flex items-center gap-2 text-sm text-muted-foreground" title={error}>
             <AlertCircle className="w-5 h-5 text-destructive/80" />
             <span>{error}</span>
         </div>
@@ -186,7 +186,7 @@ export function WeatherWidget() {
 
   if (weather && WeatherIcon) {
     return (
-      <div className="flex items-center gap-3" title={`Cuaca di ${weather.location}`}>
+      <div className="hidden sm:flex items-center gap-3" title={`Cuaca di ${weather.location}`}>
         <WeatherIcon className="w-8 h-8 text-primary shrink-0" />
         <div className="text-sm font-medium text-foreground">
             <div>{weather.temperature}°C, {weather.weatherDescription}</div>

@@ -255,7 +255,7 @@ export default function Home() {
              </div>
              <div>
                 <h1 className="text-xl sm:text-2xl font-bold text-foreground">Liburku</h1>
-                <p className="text-xs text-muted-foreground">Kalender & Perencana Liburan AI</p>
+                <p className="text-xs text-muted-foreground hidden sm:block">Kalender & Perencana Liburan AI</p>
              </div>
           </div>
           <div className="flex items-center gap-6">
@@ -266,7 +266,7 @@ export default function Home() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
         <div className="pt-4" />
-        <Card className="w-full p-3">
+        <Card className="w-full p-1 sm:p-3">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">

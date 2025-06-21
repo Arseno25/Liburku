@@ -311,9 +311,9 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0">
+          <CardContent className="p-0 sm:p-2 md:p-4">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (
                    <Card key={i}>
                     <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
@@ -327,7 +327,7 @@ export default function Home() {
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 12 }).map((_, monthIndex) => {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
@@ -345,7 +345,7 @@ export default function Home() {
                           {(monthIndex + 1).toString().padStart(2, '0')}
                         </div>
                       </CardHeader>
-                      <CardContent className="flex-grow flex p-2">
+                      <CardContent className="flex-grow flex p-0">
                         <HolidayCalendar
                           month={monthDate}
                           holidays={holidays}
@@ -353,10 +353,10 @@ export default function Home() {
                           fixedWeeks
                           classNames={{
                             caption: 'hidden',
-                            table: 'w-full border-collapse space-y-1',
-                            cell: "h-9 relative flex-1 text-center text-sm p-0",
+                            table: 'w-full border-collapse',
+                            cell: "h-9 w-9 text-center text-sm p-0 relative",
                             day: "h-full w-full p-0 text-xs",
-                            head_cell: "text-muted-foreground h-9 flex items-center justify-center flex-1 text-center font-semibold text-[0.8rem]",
+                            head_cell: "h-9 w-9 text-muted-foreground text-center font-semibold text-[0.8rem]",
                           }}
                         />
                       </CardContent>

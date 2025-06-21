@@ -1,7 +1,6 @@
 'use client';
 
 import * as React from 'react';
-import { format } from 'date-fns';
 import { DayContent, DayPickerProps } from 'react-day-picker';
 
 import { Holiday } from '@/types/holiday';
@@ -23,17 +22,24 @@ export function HolidayCalendar({ holidays, loading, ...props }: HolidayCalendar
     );
   }
 
-  const { nationalHolidays, jointLeaves } = React.useMemo(() => {
-    const nationalHolidays = holidays
-      .filter((h) => h.is_national_holiday && !h.holiday_name.toLowerCase().includes('cuti bersama'))
-      .map((h) => new Date(h.date.replace(/-/g, '/')));
+  const parsedHolidays = React.useMemo(() => {
+    return holidays.map(h => ({
+        ...h,
+        parsedDate: new Date(h.tanggal.replace(/-/g, '/'))
+    }));
+  }, [holidays]);
 
-    const jointLeaves = holidays
-      .filter((h) => h.is_national_holiday && h.holiday_name.toLowerCase().includes('cuti bersama'))
-      .map((h) => new Date(h.date.replace(/-/g, '/')));
+  const { nationalHolidays, jointLeaves } = React.useMemo(() => {
+    const nationalHolidays = parsedHolidays
+      .filter((h) => !h.is_cuti)
+      .map((h) => h.parsedDate);
+
+    const jointLeaves = parsedHolidays
+      .filter((h) => h.is_cuti)
+      .map((h) => h.parsedDate);
       
     return { nationalHolidays, jointLeaves };
-  }, [holidays]);
+  }, [parsedHolidays]);
 
   const modifiers = {
     nationalHoliday: nationalHolidays,
@@ -46,8 +52,10 @@ export function HolidayCalendar({ holidays, loading, ...props }: HolidayCalendar
   };
 
   const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {
-    const holiday = holidays.find(
-      (h) => format(dayProps.date, 'yyyy-MM-dd') === h.date
+    const dayDateString = dayProps.date.toDateString();
+    
+    const holiday = parsedHolidays.find(
+      (h) => h.parsedDate.toDateString() === dayDateString
     );
 
     if (holiday) {
@@ -60,7 +68,7 @@ export function HolidayCalendar({ holidays, loading, ...props }: HolidayCalendar
               </div>
             </TooltipTrigger>
             <TooltipContent>
-              <p>{holiday.holiday_name}</p>
+              <p>{holiday.keterangan}</p>
             </TooltipContent>
           </Tooltip>
         </TooltipProvider>

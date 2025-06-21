@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles, Wand2 } from 'lucide-react';
+import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
@@ -328,14 +328,17 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
             </div>
           </DialogHeader>
           <div className="py-2 space-y-4">
-            <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-              {(isGeneratingImage) ? (
-                <Skeleton className="h-full w-full" />
+            <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
+              {isGeneratingImage ? (
+                <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
+                  <ImageIcon className="w-14 h-14" />
+                  <p className="font-medium">Membuat gambar inspiratif...</p>
+                </div>
               ) : (
-                <img 
-                  src={imageUrl} 
-                  alt={suggestion.substring(0, 100)} 
-                  className="w-full h-full object-cover" 
+                <img
+                  src={imageUrl}
+                  alt={suggestion.substring(0, 100)}
+                  className="w-full h-full object-cover animate-in fade-in duration-300"
                 />
               )}
             </div>

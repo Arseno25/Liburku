@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from './ui/button';
@@ -9,6 +9,14 @@ import { MarkdownRenderer } from './markdown-renderer';
 import { LongWeekend } from './long-weekend-planner';
 import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack, Wallet } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Pie, PieChart, Cell } from 'recharts';
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartConfig,
+} from '@/components/ui/chart';
 
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
@@ -51,6 +59,11 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
+interface BudgetState {
+  markdown: string;
+  breakdown: { category: string; value: number }[];
+}
+
 export function SuggestionDialog({
     isOpen,
     onOpenChange,
@@ -65,7 +78,7 @@ export function SuggestionDialog({
     const [imageUrl, setImageUrl] = useState('');
     const [itinerary, setItinerary] = useState('');
     const [packingList, setPackingList] = useState('');
-    const [budget, setBudget] = useState('');
+    const [budget, setBudget] = useState<BudgetState>({ markdown: '', breakdown: [] });
 
     // State flags
     const [showThemeSelection, setShowThemeSelection] = useState(true);
@@ -80,7 +93,7 @@ export function SuggestionDialog({
         setImageUrl('');
         setItinerary('');
         setPackingList('');
-        setBudget('');
+        setBudget({ markdown: '', breakdown: [] });
         setShowThemeSelection(true);
         setIsGeneratingSuggestion(false);
         setIsGeneratingItinerary(false);
@@ -160,7 +173,7 @@ export function SuggestionDialog({
         if (!weekend || !suggestion || !itinerary || !theme) return;
 
         setIsGeneratingBudget(true);
-        setBudget('');
+        setBudget({ markdown: '', breakdown: [] });
         try {
             const budgetInput: EstimateTripBudgetInput = {
                 duration: weekend.duration,
@@ -169,15 +182,14 @@ export function SuggestionDialog({
                 itinerary: itinerary,
             };
             const result = await estimateTripBudget(budgetInput);
-            setBudget(result.budget);
+            setBudget({ markdown: result.markdownBudget, breakdown: result.budgetBreakdown });
         } catch (error) {
             console.error("Gagal membuat estimasi anggaran:", error);
-            setBudget("Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.");
+            setBudget({ markdown: "Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.", breakdown: [] });
         } finally {
             setIsGeneratingBudget(false);
         }
     };
-
 
     const handleGeneratePackingList = async () => {
         if (!weekend || !suggestion || !itinerary || !theme) return;
@@ -200,11 +212,30 @@ export function SuggestionDialog({
         }
     };
 
+    const chartConfig = useMemo(() => {
+        const config: ChartConfig = {
+            value: {
+                label: 'Anggaran',
+            },
+        };
+        if (budget.breakdown.length > 0) {
+            budget.breakdown.forEach((item, index) => {
+                config[item.category] = {
+                    label: item.category,
+                    color: `hsl(var(--chart-${index + 1}))`,
+                };
+            });
+        }
+        return config;
+    }, [budget.breakdown]);
+
+
     const isSuggestionReady = !showThemeSelection && !isGeneratingSuggestion && suggestion;
+    const isBudgetReady = budget.markdown && budget.breakdown.length > 0;
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg max-h-[90dvh] flex flex-col">
+            <DialogContent className="sm:max-w-lg md:max-w-xl max-h-[90dvh] flex flex-col">
                 <DialogHeader>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2.5 bg-primary/10 rounded-lg">
@@ -306,25 +337,40 @@ export function SuggestionDialog({
                                                 <Wallet className="w-6 h-6" />
                                                 <p className="font-medium">Menyusun estimasi anggaran...</p>
                                             </div>
-                                            <div className="space-y-3 pl-9">
-                                                <Skeleton className="h-4 w-full" />
+                                            <div className="flex flex-col items-center gap-4">
+                                                <Skeleton className="h-[250px] w-[250px] rounded-full" />
                                                 <Skeleton className="h-4 w-full" />
                                                 <Skeleton className="h-4 w-4/5" />
                                             </div>
                                         </div>
-                                    ) : budget ? (
+                                    ) : isBudgetReady ? (
                                         <div className="animate-in fade-in-50">
-                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
+                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-3">
                                                 <Wallet className="w-5 h-5 text-primary" />
-                                                Estimasi Anggaran
+                                                Estimasi & Alokasi Anggaran
                                             </h4>
-                                            <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
-                                                <MarkdownRenderer>{budget}</MarkdownRenderer>
+                                            <div className='grid md:grid-cols-2 gap-6 items-center'>
+                                                <div className="text-sm bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg leading-relaxed font-mono">
+                                                    <MarkdownRenderer>{budget.markdown}</MarkdownRenderer>
+                                                </div>
+                                                <ChartContainer config={chartConfig} className="mx-auto aspect-square h-[250px]">
+                                                    <PieChart>
+                                                        <ChartTooltip
+                                                            formatter={(value, name) => `${name}: Rp${Number(value).toLocaleString('id-ID')}`}
+                                                            content={<ChartTooltipContent hideLabel />}
+                                                        />
+                                                        <Pie data={budget.breakdown} dataKey="value" nameKey="category" innerRadius={60} strokeWidth={2}>
+                                                            {budget.breakdown.map((_, index) => (
+                                                                <Cell key={`cell-${index}`} fill={`var(--chart-${index + 1})`} className="stroke-background focus:outline-none" />
+                                                            ))}
+                                                        </Pie>
+                                                    </PieChart>
+                                                </ChartContainer>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="text-center">
-                                            <Button onClick={handleGenerateBudget}>
+                                            <Button onClick={handleGenerateBudget} disabled={isGeneratingBudget}>
                                                 <Wallet className="mr-2 h-4 w-4" />
                                                 Buatkan Estimasi Anggaran
                                             </Button>
@@ -332,7 +378,7 @@ export function SuggestionDialog({
                                     )}
                                     
                                     {/* Packing List Section appears after budget is done */}
-                                    {budget && (
+                                    {isBudgetReady && (
                                         <>
                                             <Separator className="my-4" />
                                             {isGeneratingPackingList ? (
@@ -359,7 +405,7 @@ export function SuggestionDialog({
                                                 </div>
                                             ) : (
                                                 <div className="text-center">
-                                                    <Button onClick={handleGeneratePackingList}>
+                                                    <Button onClick={handleGeneratePackingList} disabled={isGeneratingPackingList}>
                                                         <Backpack className="mr-2 h-4 w-4" />
                                                         Buatkan Daftar Barang Bawaan
                                                     </Button>
@@ -370,7 +416,7 @@ export function SuggestionDialog({
                                 </div>
                             ) : (
                                 <div className="text-center pt-2">
-                                    <Button onClick={handleGenerateItinerary}>
+                                    <Button onClick={handleGenerateItinerary} disabled={isGeneratingItinerary}>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Buatkan Rencana Perjalanan
                                     </Button>

@@ -280,17 +280,7 @@ export default function Home() {
                 </Select>
               </div>
             </div>
-             <div className="pt-4 mt-4 border-t flex flex-wrap items-center justify-between gap-y-2">
-              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-destructive"></div>
-                  <span>Hari Libur Nasional</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-warning"></div>
-                  <span>Cuti Bersama</span>
-                </div>
-              </div>
+             <div className="pt-4 mt-4 border-t flex flex-wrap items-center justify-start gap-x-6 gap-y-2">
               {currentDate && (
                 <Button 
                     variant="ghost" 
@@ -302,6 +292,16 @@ export default function Home() {
                     {currentDate}
                 </Button>
               )}
+              <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-destructive"></div>
+                  <span>Hari Libur Nasional</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-warning"></div>
+                  <span>Cuti Bersama</span>
+                </div>
+              </div>
             </div>
           </CardHeader>
           <CardContent className="p-2 sm:p-4">

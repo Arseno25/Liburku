@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Holiday } from '@/types/holiday';
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from '@/components/ui/skeleton';
+import { LongWeekendPlanner } from '@/components/long-weekend-planner';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 
@@ -97,7 +98,7 @@ export default function Home() {
                 </Select>
               </div>
             </div>
-            <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+             <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <div className="w-3.5 h-3.5 rounded-full bg-destructive/80"></div>
                 <span>Hari Libur Nasional</span>
@@ -159,6 +160,10 @@ export default function Home() {
             )}
           </CardContent>
         </Card>
+
+        {!loading && holidays.length > 0 && (
+          <LongWeekendPlanner holidays={holidays} year={selectedYear} />
+        )}
       </div>
     </main>
   );

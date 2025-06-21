@@ -5,12 +5,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon } from 'lucide-react';
+import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
 import { Badge } from '@/components/ui/badge';
+import { Button } from './ui/button';
 
 interface LongWeekend {
   title: string;
@@ -46,6 +47,13 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
+const themes = [
+    { name: 'Petualangan', icon: Mountain },
+    { name: 'Relaksasi', icon: Waves },
+    { name: 'Kuliner', icon: UtensilsCrossed },
+    { name: 'Budaya', icon: Landmark },
+]
+
 export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
   const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
@@ -54,49 +62,48 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
   const [suggestion, setSuggestion] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
-  const [isGeneratingImage, setIsGeneratingImage] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [showThemeSelection, setShowThemeSelection] = useState(true);
 
-  const handleWeekendClick = async (weekend: LongWeekend) => {
-    if (!weekend) return;
+  const handleWeekendClick = (weekend: LongWeekend) => {
     setSelectedWeekend(weekend);
-    setIsDialogOpen(true);
-
-    // Reset states
-    setIsGeneratingSuggestion(true);
-    setIsGeneratingImage(true);
     setSuggestion('');
     setImageUrl('');
-
-    try {
-      const suggestionInput: SuggestActivityInput = {
-        holidayName: weekend.holidayName,
-        duration: weekend.duration,
-        dateRange: formatDateRange(weekend.startDate, weekend.endDate),
-      };
-      
-      const suggestionPromise = suggestActivity(suggestionInput);
-      const suggestionResult = await suggestionPromise;
-      
-      setSuggestion(suggestionResult.suggestion);
-      setIsGeneratingSuggestion(false);
-      
-      const imagePromise = generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
-      const imageResult = await imagePromise;
-      setImageUrl(imageResult.imageUrl);
-
-    } catch (error) {
-      console.error("Gagal menghasilkan saran atau gambar:", error);
-      if (!suggestion) {
-        setSuggestion("Maaf, terjadi kesalahan saat mencoba memberikan ide liburan. Silakan coba lagi nanti.");
-      }
-      setImageUrl('https://placehold.co/600x400.png');
-    } finally {
-      setIsGeneratingSuggestion(false);
-      setIsGeneratingImage(false);
-    }
+    setShowThemeSelection(true);
+    setIsGenerating(false);
+    setIsDialogOpen(true);
   };
+  
+  const handleThemeSelect = async (theme: string) => {
+      if (!selectedWeekend) return;
+      
+      setShowThemeSelection(false);
+      setIsGenerating(true);
 
+      try {
+        const suggestionInput: SuggestActivityInput = {
+          holidayName: selectedWeekend.holidayName,
+          duration: selectedWeekend.duration,
+          dateRange: formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate),
+          theme: theme,
+        };
+        
+        const suggestionResult = await suggestActivity(suggestionInput);
+        setSuggestion(suggestionResult.suggestion);
+        
+        const imageResult = await generateActivityImage({ imagePrompt: suggestionResult.imagePrompt });
+        setImageUrl(imageResult.imageUrl);
+
+      } catch (error) {
+        console.error("Gagal menghasilkan saran atau gambar:", error);
+        if (!suggestion) {
+          setSuggestion("Maaf, terjadi kesalahan saat mencoba memberikan ide liburan. Silakan coba lagi nanti.");
+        }
+        setImageUrl('https://placehold.co/600x400.png');
+      } finally {
+        setIsGenerating(false);
+      }
+  }
 
   const longWeekends = useMemo(() => {
     const potentialWeekends: LongWeekend[] = [];
@@ -328,31 +335,55 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
             </div>
           </DialogHeader>
           <div className="py-2 space-y-4">
-            <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
-              {isGeneratingImage ? (
-                <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
-                  <ImageIcon className="w-14 h-14" />
-                  <p className="font-medium">Membuat gambar inspiratif...</p>
+            {showThemeSelection && (
+                <div className="animate-in fade-in-50 duration-300">
+                    <p className="text-center font-medium text-foreground mb-4">Pilih tema liburan Anda:</p>
+                    <div className="grid grid-cols-2 gap-3">
+                        {themes.map(theme => (
+                            <Button
+                                key={theme.name}
+                                variant="outline"
+                                className="py-6 flex-col gap-2 h-auto text-base"
+                                onClick={() => handleThemeSelect(theme.name)}
+                            >
+                                <theme.icon className="w-6 h-6 text-primary" />
+                                <span>{theme.name}</span>
+                            </Button>
+                        ))}
+                    </div>
                 </div>
-              ) : (
-                <img
-                  src={imageUrl}
-                  alt={suggestion.substring(0, 100)}
-                  className="w-full h-full object-cover animate-in fade-in duration-300"
-                />
-              )}
-            </div>
-            <div className="text-foreground/90">
-              {isGeneratingSuggestion ? (
-                <div className="space-y-3 pt-2">
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-full" />
-                  <Skeleton className="h-4 w-4/5" />
+            )}
+
+            {isGenerating && (
+                <div className="space-y-4">
+                     <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
+                        <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
+                            <ImageIcon className="w-14 h-14" />
+                            <p className="font-medium">Membuat gambar inspiratif...</p>
+                        </div>
+                    </div>
+                    <div className="space-y-3 pt-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-4/5" />
+                    </div>
                 </div>
-              ) : (
-                <p className="text-base leading-relaxed whitespace-pre-wrap">{suggestion}</p>
-              )}
-            </div>
+            )}
+            
+            {!showThemeSelection && !isGenerating && (
+                 <div className="space-y-4 animate-in fade-in-50 duration-300">
+                    <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
+                        <img
+                          src={imageUrl}
+                          alt={suggestion.substring(0, 100)}
+                          className="w-full h-full object-cover"
+                        />
+                    </div>
+                    <div className="text-foreground/90">
+                        <p className="text-base leading-relaxed whitespace-pre-wrap">{suggestion}</p>
+                    </div>
+                </div>
+            )}
           </div>
         </DialogContent>
       </Dialog>

@@ -9,13 +9,19 @@ import { Avatar } from '@/components/ui/avatar';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { chatWithAssistant, ChatInput } from '@/ai/flows/chat-flow';
 import { MarkdownRenderer } from './markdown-renderer';
+import type { Holiday } from '@/types/holiday';
 
 interface Message {
   role: 'user' | 'model';
   content: string;
 }
 
-export function ChatInterface() {
+interface ChatInterfaceProps {
+  holidays: Holiday[];
+  year: number;
+}
+
+export function ChatInterface({ holidays, year }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       role: 'model',
@@ -58,6 +64,8 @@ export function ChatInterface() {
             history: chatHistory,
             message: input,
             currentDate: currentDate,
+            holidays: holidays,
+            year: year,
         };
 
         const result = await chatWithAssistant(chatInput);

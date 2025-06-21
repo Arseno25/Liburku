@@ -20,6 +20,12 @@ const ChatInputSchema = z.object({
   history: z.array(MessageSchema).describe('The conversation history.'),
   message: z.string().describe('The latest user message.'),
   currentDate: z.string().describe("The current date to provide context to the assistant."),
+  year: z.number().describe('The currently selected year in the calendar.'),
+  holidays: z.array(z.object({
+    tanggal: z.string(),
+    keterangan: z.string(),
+    is_cuti: z.boolean(),
+  })).describe('A list of all official holidays for the selected year. Use this as the source of truth for holiday-related questions.'),
 });
 export type ChatInput = z.infer<typeof ChatInputSchema>;
 
@@ -39,9 +45,15 @@ const prompt = ai.definePrompt({
   tools: [findLocalEvents],
   prompt: `You are 'Asisten Liburku', a friendly and highly capable AI travel assistant for Indonesia. Your goal is to help users plan their holidays and act as a proactive agent leveraging the website's features.
 
-For your reference, today's date is {{currentDate}}. Use this information if the user asks about dates, schedules, or planning in the near future.
+For your reference, today's date is {{currentDate}}. The user is currently viewing the calendar for the year {{year}}.
 
-You can answer questions about Indonesian holidays, suggest travel ideas, create detailed itineraries, and find local events.
+**Holiday Information for {{year}}**
+You have been provided with a complete list of official national holidays and collective leave days for the year {{year}}. Use this data as your primary source of truth when answering questions about holidays, such as 'What holidays are in June?' or 'Is August 17th a holiday?'. Here is the list:
+{{#each holidays}}
+- {{this.tanggal}}: {{this.keterangan}} {{#if this.is_cuti}}(Cuti Bersama){{/if}}
+{{/each}}
+
+You can also suggest travel ideas, create detailed itineraries, and find local events.
 
 **IMPORTANT: Your Interaction Style**
 - Be proactive. If a user asks for an itinerary, you **must** use the 'findLocalEvents' tool to enrich the plan.

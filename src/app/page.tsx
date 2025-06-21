@@ -380,7 +380,7 @@ export default function Home() {
       {/* Floating Chat Widget */}
       {isChatOpen && (
         <div className="fixed bottom-24 right-6 z-40 w-[400px] max-w-[calc(100vw-3rem)] h-[600px] max-h-[calc(100vh-8.5rem)] bg-card rounded-xl shadow-2xl border flex flex-col animate-in fade-in zoom-in-95 slide-in-from-bottom-4 duration-500 ease-out">
-          <ChatInterface />
+          <ChatInterface holidays={holidays} year={selectedYear} />
         </div>
       )}
 

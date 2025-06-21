@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Calendar as CalendarIcon } from 'lucide-react';
+import { Calendar as CalendarIcon, Info } from 'lucide-react';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -97,6 +97,20 @@ export default function Home() {
                 </Select>
               </div>
             </div>
+            <div className="pt-4 mt-4 border-t border-border/80 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 rounded-full bg-destructive/80"></div>
+                <span>Hari Libur Nasional</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 rounded-full bg-warning/80"></div>
+                <span>Cuti Bersama</span>
+              </div>
+              <div className="flex items-center gap-2">
+                 <Info className="w-4 h-4" />
+                <span>Klik tanggal untuk detail</span>
+              </div>
+            </div>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 bg-secondary/20">
             {loading ? (
@@ -119,7 +133,7 @@ export default function Home() {
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
                     <Card key={monthIndex} className="flex flex-col transition-shadow duration-300 hover:shadow-xl overflow-hidden bg-card">
-                      <CardHeader className="text-center border-b p-4 bg-card/50">
+                      <CardHeader className="text-center border-b p-4 bg-accent/5 dark:bg-accent/10">
                         <CardTitle className="text-lg font-semibold font-headline text-secondary-foreground">
                           {monthName}
                         </CardTitle>

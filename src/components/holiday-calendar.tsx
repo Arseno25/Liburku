@@ -38,8 +38,8 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
   };
 
   const modifiersClassNames = {
-    nationalHoliday: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive',
-    jointLeave: 'bg-warning text-warning-foreground hover:bg-warning/90 focus:bg-warning',
+    nationalHoliday: 'rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive',
+    jointLeave: 'rounded-full bg-warning text-warning-foreground hover:bg-warning/90 focus:bg-warning',
   };
 
   const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {

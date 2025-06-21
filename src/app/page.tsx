@@ -62,7 +62,7 @@ export default function Home() {
   };
   
   return (
-    <main className="min-h-screen w-full flex flex-col items-center p-4 sm:p-6 lg:p-8">
+    <main className="min-h-screen w-full flex flex-col items-center bg-secondary/40 p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-7xl mx-auto">
         <header className="flex justify-between items-center mb-6">
           <div className="flex items-center gap-3">
@@ -76,14 +76,24 @@ export default function Home() {
 
         <Card className="w-full shadow-lg">
           <CardHeader>
-            <div className='flex flex-col sm:flex-row justify-between sm:items-center gap-2'>
+            <div className='flex flex-col sm:flex-row justify-between sm:items-center gap-4'>
               <div>
                 <CardTitle className="font-headline">Kalender Hari Libur Indonesia</CardTitle>
                 <CardDescription>Jelajahi hari libur nasional dan cuti bersama untuk tahun {selectedYear}.</CardDescription>
               </div>
-              <div className="flex flex-row gap-2 pt-4 sm:pt-0">
+              <div className="flex flex-row items-center gap-4 pt-4 sm:pt-0">
+                 <div className="items-center gap-4 text-sm hidden sm:flex">
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-destructive" />
+                        <span>Hari Libur Nasional</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <div className="w-4 h-4 rounded-full bg-warning" />
+                        <span>Cuti Bersama</span>
+                    </div>
+                </div>
                 <Select value={selectedYear.toString()} onValueChange={handleYearChange}>
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-[120px]">
                     <SelectValue placeholder="Tahun" />
                   </SelectTrigger>
                   <SelectContent>
@@ -101,7 +111,14 @@ export default function Home() {
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (
-                  <Skeleton key={i} className="w-full h-[320px] rounded-lg" />
+                   <Card key={i}>
+                    <CardHeader>
+                      <Skeleton className="h-6 w-24 rounded-md" />
+                    </CardHeader>
+                    <CardContent>
+                      <Skeleton key={i} className="w-full h-[280px] rounded-lg" />
+                    </CardContent>
+                  </Card>
                 ))}
               </div>
             ) : (
@@ -110,33 +127,37 @@ export default function Home() {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
                    return (
-                    <div key={monthIndex} className="flex flex-col items-center">
-                      <h3 className="text-lg font-semibold text-center mb-2 font-headline">
-                        {monthName}
-                      </h3>
-                      <HolidayCalendar
-                        month={monthDate}
-                        holidays={holidays}
-                        showOutsideDays
-                        fixedWeeks
-                        classNames={{
-                          caption: 'hidden',
-                          day: "h-8 w-8",
-                          head_cell: "w-8",
-                        }}
-                      />
-                    </div>
+                    <Card key={monthIndex} className="flex flex-col">
+                      <CardHeader className="text-center">
+                        <CardTitle className="text-xl font-semibold font-headline">
+                          {monthName}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="flex justify-center p-0 pb-4">
+                        <HolidayCalendar
+                          month={monthDate}
+                          holidays={holidays}
+                          showOutsideDays
+                          fixedWeeks
+                          classNames={{
+                            caption: 'hidden',
+                            day: "h-8 w-8",
+                            head_cell: "w-8",
+                          }}
+                        />
+                      </CardContent>
+                    </Card>
                   )
                 })}
               </div>
             )}
-            <div className="flex justify-center items-center gap-4 mt-8 text-sm">
+            <div className="flex sm:hidden justify-center items-center gap-4 mt-8 text-sm">
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-destructive" />
+                    <div className="w-4 h-4 rounded-full bg-destructive" />
                     <span>Hari Libur Nasional</span>
                 </div>
                 <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-warning" />
+                    <div className="w-4 h-4 rounded-full bg-warning" />
                     <span>Cuti Bersama</span>
                 </div>
             </div>

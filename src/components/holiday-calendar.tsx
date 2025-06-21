@@ -91,7 +91,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
         <div
           onClick={() => handleHolidayClick(holiday)}
           className={cn(
-            'flex h-9 w-9 cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
+            'flex h-full w-full cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
             holiday.is_cuti
               ? 'bg-warning text-warning-foreground'
               : 'bg-destructive text-destructive-foreground'
@@ -102,26 +102,18 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
       );
     }
 
-    if (isToday) {
-      return (
-        <div className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-full bg-primary/20 font-bold",
-          isSunday ? "text-destructive" : "text-primary"
-        )}>
-          {dayNumber}
-        </div>
-      );
-    }
-    
-    if (isSunday) {
-      return (
-        <div className="flex h-9 w-9 items-center justify-center font-medium text-destructive">
-          {dayNumber}
-        </div>
-      );
-    }
-
-    return dayNumber;
+    // For all other days, use a consistent wrapper for alignment.
+    return (
+      <div className={cn(
+          "flex h-full w-full items-center justify-center", // This ensures all text is centered.
+          isToday && "rounded-full bg-primary/20 font-bold",
+          isToday && isSunday && "text-destructive",
+          isToday && !isSunday && "text-primary",
+          !isToday && isSunday && "font-medium text-destructive"
+      )}>
+        {dayNumber}
+      </div>
+    )
   };
 
   return (

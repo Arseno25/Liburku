@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 const months = Array.from({ length: 12 }, (_, i) => ({
   value: i.toString(),
-  label: new Date(0, i).toLocaleString('default', { month: 'long' }),
+  label: new Date(0, i).toLocaleString('id-ID', { month: 'long' }),
 }));
 
 export default function Home() {
@@ -34,7 +34,7 @@ export default function Home() {
           
         const response = await fetch(url);
         if (!response.ok) {
-          throw new Error('Failed to fetch holiday data.');
+          throw new Error('Gagal mengambil data hari libur.');
         }
         const data = await response.json();
         
@@ -50,8 +50,8 @@ export default function Home() {
         setHolidays([]); // Clear holidays on error
         toast({
           variant: "destructive",
-          title: "Error",
-          description: "Could not fetch holiday data. Please try again later.",
+          title: "Gagal",
+          description: "Tidak dapat mengambil data hari libur. Silakan coba lagi nanti.",
         })
       } finally {
         setLoading(false);
@@ -88,13 +88,13 @@ export default function Home() {
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-center gap-2'>
               <div>
-                <CardTitle className="font-headline">Indonesian Holiday Calendar</CardTitle>
-                <CardDescription>Explore national holidays and joint leave days.</CardDescription>
+                <CardTitle className="font-headline">Kalender Hari Libur Indonesia</CardTitle>
+                <CardDescription>Jelajahi hari libur nasional dan cuti bersama.</CardDescription>
               </div>
               <div className="flex flex-row gap-2 pt-4 sm:pt-0">
                 <Select value={displayMonth.getFullYear().toString()} onValueChange={handleYearChange}>
                   <SelectTrigger className="w-full sm:w-[120px]">
-                    <SelectValue placeholder="Year" />
+                    <SelectValue placeholder="Tahun" />
                   </SelectTrigger>
                   <SelectContent>
                     {years.map((y) => (
@@ -106,7 +106,7 @@ export default function Home() {
                 </Select>
                 <Select value={displayMonth.getMonth().toString()} onValueChange={handleMonthChange}>
                   <SelectTrigger className="w-full sm:w-[150px]">
-                    <SelectValue placeholder="Month" />
+                    <SelectValue placeholder="Bulan" />
                   </SelectTrigger>
                   <SelectContent>
                     {months.map((m) => (
@@ -135,11 +135,11 @@ export default function Home() {
             <div className="flex justify-center items-center gap-4 mt-4 text-sm">
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-destructive" />
-                    <span>National Holiday</span>
+                    <span>Hari Libur Nasional</span>
                 </div>
                 <div className="flex items-center gap-2">
                     <div className="w-3 h-3 rounded-full bg-warning" />
-                    <span>Joint Leave</span>
+                    <span>Cuti Bersama</span>
                 </div>
             </div>
           </CardContent>

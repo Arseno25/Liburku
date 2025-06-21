@@ -354,7 +354,7 @@ export default function Home() {
                             caption: 'hidden',
                             table: 'w-full border-collapse space-y-1',
                             day: "h-8 w-8 text-xs",
-                            head_cell: "w-8 font-normal text-muted-foreground text-[0.7rem]",
+                            head_cell: "w-8 text-center font-normal text-muted-foreground text-[0.7rem]",
                           }}
                         />
                       </CardContent>

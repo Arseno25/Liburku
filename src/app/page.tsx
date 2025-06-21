@@ -240,7 +240,7 @@ export default function Home() {
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className={cn(
           "sticky top-0 z-30 flex h-14 items-center justify-between px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
-          scrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent bg-background"
+          scrolled ? "border-b bg-background/80 backdrop-blur-sm" : "border-b border-transparent"
       )}>
          <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">
@@ -257,6 +257,7 @@ export default function Home() {
           </div>
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
+        <div className="pt-4" />
         <Card className="w-full shadow-sm">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
@@ -303,22 +304,23 @@ export default function Home() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="p-4 sm:p-6">
+          <CardContent className="p-2 sm:p-4">
             {loading ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {Array.from({ length: 12 }).map((_, i) => (
                    <Card key={i}>
-                    <CardHeader>
-                      <Skeleton className="h-6 w-24 rounded-md" />
+                    <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
+                      <Skeleton className="h-5 w-20 rounded-md" />
+                      <Skeleton className="h-7 w-8 rounded-md" />
                     </CardHeader>
-                    <CardContent>
-                      <Skeleton key={i} className="w-full h-[280px] rounded-lg" />
+                    <CardContent className="p-3">
+                      <Skeleton key={i} className="w-full h-[220px] rounded-lg" />
                     </CardContent>
                   </Card>
                 ))}
               </div>
             ) : (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
                 {Array.from({ length: 12 }).map((_, monthIndex) => {
                    const monthDate = new Date(selectedYear, monthIndex, 1);
                    const monthName = monthDate.toLocaleString('id-ID', { month: 'long' });
@@ -326,14 +328,17 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col transition-shadow duration-300 hover:shadow-md overflow-hidden bg-card"
+                      className="flex flex-col transition-shadow duration-300 hover:shadow-md"
                     >
-                      <CardHeader className="text-center p-3 border-b">
+                      <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
                         <CardTitle className="text-base font-semibold text-foreground">
                           {monthName}
                         </CardTitle>
+                         <div className="text-2xl font-bold text-primary/20 select-none">
+                          {(monthIndex + 1).toString().padStart(2, '0')}
+                        </div>
                       </CardHeader>
-                      <CardContent className="flex-grow flex justify-center items-center p-2">
+                      <CardContent className="flex-grow flex justify-center items-center p-3">
                         <HolidayCalendar
                           month={monthDate}
                           holidays={holidays}
@@ -341,9 +346,9 @@ export default function Home() {
                           fixedWeeks
                           classNames={{
                             caption: 'hidden',
-                            table: 'w-full border-collapse space-y-1.5',
-                            day: "h-9 w-9",
-                            head_cell: "w-9 font-normal text-muted-foreground",
+                            table: 'w-full border-collapse space-y-1',
+                            day: "h-8 w-8 text-xs",
+                            head_cell: "w-8 font-normal text-muted-foreground text-[0.7rem]",
                           }}
                         />
                       </CardContent>
@@ -366,7 +371,7 @@ export default function Home() {
             )}
           </div>
           <div className="lg:col-span-1">
-             <Card className="w-full shadow-sm sticky top-20">
+             <Card className="w-full shadow-sm sticky top-28">
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">

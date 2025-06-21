@@ -60,12 +60,13 @@ export default function Home() {
   const { nationalHolidays, collectiveLeave } = useMemo(() => {
     return holidays.reduce(
       (acc, holiday) => {
-        const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
-        // Hanya hitung jika bukan hari Minggu (getDay() === 0)
-        if (holidayDate.getDay() !== 0) {
-          if (holiday.is_cuti) {
-            acc.collectiveLeave += 1;
-          } else {
+        if (holiday.is_cuti) {
+          // Cuti bersama adalah hari libur tambahan, jadi selalu dihitung.
+          acc.collectiveLeave += 1;
+        } else {
+          // Hari libur nasional hanya dihitung jika tidak jatuh pada hari Minggu.
+          const holidayDate = new Date(holiday.tanggal.replace(/-/g, '/'));
+          if (holidayDate.getDay() !== 0) {
             acc.nationalHolidays += 1;
           }
         }

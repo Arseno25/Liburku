@@ -91,7 +91,7 @@ export function WeatherWidget() {
 
   useEffect(() => {
     if (!navigator.geolocation) {
-      setError('Geolocation is not supported by your browser.');
+      setError('Geolocation tidak didukung oleh browser Anda.');
       setLoading(false);
       return;
     }
@@ -150,8 +150,12 @@ export function WeatherWidget() {
           setLoading(false);
         }
       },
-      () => {
-        setError('Tidak dapat mengambil lokasi Anda.');
+      (err) => {
+        if (err.code === 1) { // PERMISSION_DENIED
+            setError("Aktifkan izin lokasi untuk melihat cuaca.");
+        } else {
+            setError('Tidak dapat mengambil lokasi Anda.');
+        }
         setLoading(false);
       }
     );
@@ -175,7 +179,7 @@ export function WeatherWidget() {
     return (
         <div className="flex items-center gap-2 text-sm text-muted-foreground" title={error}>
             <AlertCircle className="w-5 h-5 text-destructive/80" />
-            <span className="hidden sm:inline">Info Cuaca Gagal</span>
+            <span>{error}</span>
         </div>
     );
   }

@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/button';
 import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { WeatherWidget } from '@/components/weather-widget';
 import { ChatInterface } from '@/components/chat-interface';
+import { WelcomeDialog } from '@/components/welcome-dialog';
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 
@@ -43,12 +44,26 @@ export default function Home() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isChatMinimized, setIsChatMinimized] = useState(false);
 
+  // State for welcome dialog
+  const [isWelcomeOpen, setIsWelcomeOpen] = useState(false);
+
 
   const handleScrollToMonth = useCallback((monthIndex: number) => {
     monthRefs.current[monthIndex]?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
     });
+  }, []);
+
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('hasSeenWelcome');
+    if (!hasSeenWelcome) {
+        // Set a small delay to allow the main UI to render first
+        const timer = setTimeout(() => {
+            setIsWelcomeOpen(true);
+        }, 500);
+        return () => clearTimeout(timer);
+    }
   }, []);
 
   useEffect(() => {
@@ -371,6 +386,8 @@ export default function Home() {
 
       </div>
       
+      <WelcomeDialog isOpen={isWelcomeOpen} onOpenChange={setIsWelcomeOpen} />
+
       <SuggestionDialog
         isOpen={isInspirationOpen}
         onOpenChange={setIsInspirationOpen}

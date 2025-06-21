@@ -19,6 +19,7 @@ import { ChatInterface } from '@/components/chat-interface';
 import { WelcomeDialog } from '@/components/welcome-dialog';
 import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
+import { ClockWidget } from '@/components/clock-widget';
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -258,6 +259,7 @@ export default function Home() {
              </div>
           </div>
           <div className="flex items-center gap-6">
+            <ClockWidget />
             <WeatherWidget />
             <ThemeToggle />
           </div>
@@ -310,7 +312,7 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-2 sm:p-1">
+          <CardContent className="p-2 sm:p-0">
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -319,7 +321,7 @@ export default function Home() {
                       <Skeleton className="h-5 w-20 rounded-md" />
                       <Skeleton className="h-7 w-8 rounded-md" />
                     </CardHeader>
-                    <CardContent className="p-3">
+                    <CardContent className="p-0">
                       <Skeleton key={i} className="w-full h-[220px] rounded-lg" />
                     </CardContent>
                   </Card>

@@ -34,7 +34,7 @@ Tugas Anda adalah memberikan penjelasan yang jelas dan informatif mengenai hari 
 
 Jelaskan secara singkat dan menarik tentang hari libur "{{holidayName}}".
 Gunakan Bahasa Indonesia yang baik, benar, dan formal. Hindari penggunaan singkatan, bahasa gaul, atau kalimat yang terlalu santai.
-Penjelasan harus sekitar 2-3 kalimat dan mudah dimengerti oleh masyarakat umum.`,
+Penjelasan harus terdiri dari 2-3 kalimat yang padat informasi dan mudah dimengerti oleh masyarakat umum.`,
 });
 
 

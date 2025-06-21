@@ -130,7 +130,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
                 </div>
                 <DialogTitle className="text-xl font-semibold">{selectedHoliday?.keterangan}</DialogTitle>
               </div>
-               <Button variant="ghost" size="icon" onClick={handleListenClick} disabled={isGenerating || isGeneratingAudio || !explanation}>
+               <Button variant="outline" size="icon" onClick={handleListenClick} disabled={isGenerating || isGeneratingAudio || !explanation}>
                   {isGeneratingAudio ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <Volume2 className="w-5 h-5" />}
                   <span className="sr-only">Dengarkan Penjelasan</span>
               </Button>

@@ -5,13 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Holiday } from '@/types/holiday';
-import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark } from 'lucide-react';
+import { Plane, CalendarDays, Sparkles, Wand2, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
+import { generateItinerary, GenerateItineraryInput } from '@/ai/flows/generate-itinerary-flow';
 import { Badge } from '@/components/ui/badge';
 import { Button } from './ui/button';
+import { Separator } from './ui/separator';
 
 interface LongWeekend {
   title: string;
@@ -64,13 +66,19 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
   const [imageUrl, setImageUrl] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [showThemeSelection, setShowThemeSelection] = useState(true);
+  const [itinerary, setItinerary] = useState('');
+  const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
+  const [selectedTheme, setSelectedTheme] = useState('');
 
   const handleWeekendClick = (weekend: LongWeekend) => {
     setSelectedWeekend(weekend);
     setSuggestion('');
     setImageUrl('');
+    setItinerary('');
+    setSelectedTheme('');
     setShowThemeSelection(true);
     setIsGenerating(false);
+    setIsGeneratingItinerary(false);
     setIsDialogOpen(true);
   };
   
@@ -79,6 +87,9 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
       
       setShowThemeSelection(false);
       setIsGenerating(true);
+      setItinerary('');
+      setIsGeneratingItinerary(false);
+      setSelectedTheme(theme);
 
       try {
         const suggestionInput: SuggestActivityInput = {
@@ -104,6 +115,32 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
         setIsGenerating(false);
       }
   }
+
+  const handleGenerateItinerary = async () => {
+    if (!selectedWeekend || !suggestion || !selectedTheme) return;
+
+    setIsGeneratingItinerary(true);
+    setItinerary('');
+
+    try {
+        const itineraryInput: GenerateItineraryInput = {
+            holidayName: selectedWeekend.holidayName,
+            duration: selectedWeekend.duration,
+            dateRange: formatDateRange(selectedWeekend.startDate, selectedWeekend.endDate),
+            theme: selectedTheme,
+            suggestion: suggestion,
+        };
+
+        const result = await generateItinerary(itineraryInput);
+        setItinerary(result.itinerary);
+    } catch (error) {
+        console.error("Gagal membuat rencana perjalanan:", error);
+        setItinerary("Maaf, terjadi kesalahan saat membuat rencana perjalanan. Silakan coba lagi nanti.");
+    } finally {
+        setIsGeneratingItinerary(false);
+    }
+  }
+
 
   const longWeekends = useMemo(() => {
     const potentialWeekends: LongWeekend[] = [];
@@ -370,7 +407,7 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
                 </div>
             )}
             
-            {!showThemeSelection && !isGenerating && (
+            {!showThemeSelection && !isGenerating && suggestion && (
                  <div className="space-y-4 animate-in fade-in-50 duration-300">
                     <div className="w-full aspect-video rounded-lg bg-secondary/40 flex items-center justify-center overflow-hidden border">
                         <img
@@ -382,6 +419,39 @@ export function LongWeekendPlanner({ holidays, year }: LongWeekendPlannerProps) 
                     <div className="text-foreground/90">
                         <p className="text-base leading-relaxed whitespace-pre-wrap">{suggestion}</p>
                     </div>
+                    
+                    <Separator className="my-2" />
+
+                    {isGeneratingItinerary ? (
+                      <div className="space-y-4 pt-2">
+                          <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
+                              <FileText className="w-6 h-6" />
+                              <p className="font-medium">Membuat rencana perjalanan detail...</p>
+                          </div>
+                          <div className="space-y-3 pl-9">
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-full" />
+                              <Skeleton className="h-4 w-4/5" />
+                          </div>
+                      </div>
+                    ) : itinerary ? (
+                      <div className="space-y-3 animate-in fade-in-50">
+                          <h4 className="font-semibold text-lg flex items-center gap-2.5">
+                              <FileText className="w-5 h-5 text-primary" />
+                              Rencana Perjalanan
+                          </h4>
+                          <div className="text-sm text-foreground/90 bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4 rounded-lg whitespace-pre-wrap leading-relaxed font-mono">
+                              {itinerary}
+                          </div>
+                      </div>
+                    ) : (
+                      <div className="text-center pt-2">
+                          <Button onClick={handleGenerateItinerary}>
+                              <Sparkles className="mr-2 h-4 w-4" />
+                              Buatkan Rencana Perjalanan
+                          </Button>
+                      </div>
+                    )}
                 </div>
             )}
           </div>

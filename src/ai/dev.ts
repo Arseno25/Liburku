@@ -4,3 +4,4 @@ import './flows/explain-holiday-flow';
 import './flows/suggest-long-weekend-activity-flow';
 import './flows/generate-activity-image-flow';
 import './flows/text-to-speech-flow';
+import './flows/generate-itinerary-flow';

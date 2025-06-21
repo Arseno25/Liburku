@@ -6,21 +6,12 @@ import { DayContent, DayPickerProps } from 'react-day-picker';
 import { Holiday } from '@/types/holiday';
 import { Calendar } from '@/components/ui/calendar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { Skeleton } from './ui/skeleton';
 
 interface HolidayCalendarProps extends DayPickerProps {
   holidays: Holiday[];
-  loading: boolean;
 }
 
-export function HolidayCalendar({ holidays, loading, ...props }: HolidayCalendarProps) {
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center w-full">
-        <Skeleton className="w-full max-w-md h-[380px] rounded-lg" />
-      </div>
-    );
-  }
+export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
 
   const parsedHolidays = React.useMemo(() => {
     return holidays.map(h => ({
@@ -46,7 +37,7 @@ export function HolidayCalendar({ holidays, loading, ...props }: HolidayCalendar
     jointLeave: jointLeaves,
   };
 
-  const modifierClassNames = {
+  const modifiersClassNames = {
     nationalHoliday: 'bg-destructive text-destructive-foreground hover:bg-destructive/90 focus:bg-destructive',
     jointLeave: 'bg-warning text-warning-foreground hover:bg-warning/90 focus:bg-warning',
   };

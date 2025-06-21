@@ -2,6 +2,8 @@
 
 import * as React from 'react';
 import { DayContent, DayPickerProps } from 'react-day-picker';
+import { format } from 'date-fns';
+import { id } from 'date-fns/locale';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { explainHoliday } from '@/ai/flows/explain-holiday-flow';
@@ -79,6 +81,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const isToday = dayProps.date.getTime() === today.getTime();
+    const isSunday = dayProps.date.getDay() === 0;
 
     const dayNumber = <DayContent {...dayProps} />;
 
@@ -100,7 +103,18 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
 
     if (isToday) {
       return (
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 font-bold text-primary">
+        <div className={cn(
+          "flex h-8 w-8 items-center justify-center rounded-full bg-primary/20 font-bold",
+          isSunday ? "text-destructive" : "text-primary"
+        )}>
+          {dayNumber}
+        </div>
+      );
+    }
+    
+    if (isSunday) {
+      return (
+        <div className="flex h-8 w-8 items-center justify-center font-medium text-destructive">
           {dayNumber}
         </div>
       );
@@ -113,6 +127,16 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     <>
       <div className="w-full transition-opacity duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
         <Calendar
+          locale={id}
+          formatters={{
+            formatWeekdayName: (day) => {
+              const dayName = format(day, 'eee', { locale: id });
+              if (day.getDay() === 0) {
+                return <span className="font-semibold text-destructive">{dayName}</span>;
+              }
+              return dayName;
+            },
+          }}
           components={{
             DayContent: CustomDay,
           }}

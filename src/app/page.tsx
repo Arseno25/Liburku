@@ -17,7 +17,13 @@ import { SuggestionDialog } from '@/components/suggestion-dialog';
 import { WeatherWidget } from '@/components/weather-widget';
 import { ChatInterface } from '@/components/chat-interface';
 import { WelcomeDialog } from '@/components/welcome-dialog';
+import { Inter } from 'next/font/google';
 import { cn } from '@/lib/utils';
+
+const fontSans = Inter({
+  subsets: ['latin'],
+  variable: '--font-sans',
+})
 
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 const themes = [ 'Petualangan', 'Relaksasi', 'Kuliner', 'Budaya' ];
@@ -237,7 +243,7 @@ export default function Home() {
   };
   
   return (
-    <div className="flex min-h-screen w-full flex-col bg-background">
+    <div className="flex min-h-screen w-full flex-col bg-muted/40">
       <header className={cn(
           "sticky top-0 z-30 flex h-14 items-center justify-between gap-4 border-b px-4 transition-colors duration-300 sm:h-auto sm:px-6 sm:py-4",
           scrolled ? "border-border bg-background/80 backdrop-blur-sm" : "border-transparent"
@@ -258,11 +264,11 @@ export default function Home() {
       </header>
       <main className="flex flex-1 flex-col gap-4 p-4 sm:px-6 sm:py-4 md:gap-8">
         <div className="pt-4" />
-        <Card className="w-full border-none shadow-none">
+        <Card className="w-full">
           <CardHeader>
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
-                <CardTitle className="text-2xl">Kalender Libur {selectedYear}</CardTitle>
+                <CardTitle>Kalender Libur {selectedYear}</CardTitle>
                 <CardDescription className="mt-1.5">Jelajahi hari libur nasional dan cuti bersama. Klik tanggal untuk detail.</CardDescription>
               </div>
               <div className="flex-shrink-0">
@@ -328,13 +334,13 @@ export default function Home() {
                     <Card 
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
-                      className="flex flex-col bg-muted/50 dark:bg-card/10 transition-shadow duration-300 hover:shadow-lg"
+                      className="flex flex-col bg-card transition-shadow duration-300 hover:shadow-lg"
                     >
                       <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
-                        <CardTitle className="text-base font-semibold text-foreground">
+                        <h3 className="text-base font-semibold text-foreground">
                           {monthName}
-                        </CardTitle>
-                         <div className="text-2xl font-bold text-primary select-none">
+                        </h3>
+                         <div className="text-2xl font-bold text-primary/80 dark:text-primary/70 select-none">
                           {(monthIndex + 1).toString().padStart(2, '0')}
                         </div>
                       </CardHeader>

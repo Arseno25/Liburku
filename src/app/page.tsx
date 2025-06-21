@@ -225,7 +225,7 @@ export default function Home() {
   
   return (
     <div className="flex min-h-screen w-full flex-col bg-muted/40">
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6">
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
          <div className="flex items-center gap-3">
              <div className="p-2 bg-primary/10 rounded-lg">
                 <CalendarIcon className="w-6 h-6 text-primary" />
@@ -235,7 +235,7 @@ export default function Home() {
                 <p className="text-xs text-muted-foreground">Kalender & Perencana Liburan AI</p>
              </div>
           </div>
-          <div className="ml-auto flex items-center gap-4">
+          <div className="flex items-center gap-6">
             <WeatherWidget />
             <ThemeToggle />
           </div>
@@ -246,7 +246,7 @@ export default function Home() {
             <div className='flex flex-col sm:flex-row justify-between sm:items-start gap-4'>
               <div className="flex-grow">
                 <CardTitle className="text-2xl">Kalender Libur {selectedYear}</CardTitle>
-                <CardDescription>Jelajahi hari libur nasional dan cuti bersama. Klik tanggal untuk detail.</CardDescription>
+                <CardDescription className="mt-1.5">Jelajahi hari libur nasional dan cuti bersama. Klik tanggal untuk detail.</CardDescription>
               </div>
               <div className="flex-shrink-0">
                 <Select value={selectedYear.toString()} onValueChange={handleYearChange}>

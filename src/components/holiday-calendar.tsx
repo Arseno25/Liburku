@@ -72,7 +72,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     <div className="w-full transition-opacity duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
       <Calendar
         modifiers={modifiers}
-        modifiersClassNames={modifierClassNames}
+        modifiersClassNames={modifiersClassNames}
         components={{
           DayContent: CustomDay,
         }}

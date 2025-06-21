@@ -1,0 +1,71 @@
+'use server';
+/**
+ * @fileOverview A conversational AI chat assistant flow.
+ *
+ * - chatWithAssistant - A function that handles the conversational chat process.
+ * - ChatInput - The input type for the chatWithAssistant function.
+ * - ChatOutput - The return type for the chatWithAssistant function.
+ */
+
+import { ai } from '@/ai/genkit';
+import { z } from 'zod';
+import { findLocalEvents } from '@/ai/tools/find-local-events-tool';
+
+const MessageSchema = z.object({
+  role: z.enum(['user', 'model']),
+  content: z.string(),
+});
+
+export const ChatInputSchema = z.object({
+  history: z.array(MessageSchema).describe('The conversation history.'),
+  message: z.string().describe('The latest user message.'),
+});
+export type ChatInput = z.infer<typeof ChatInputSchema>;
+
+export const ChatOutputSchema = z.object({
+  response: z.string().describe("The AI assistant's response."),
+});
+export type ChatOutput = z.infer<typeof ChatOutputSchema>;
+
+export async function chatWithAssistant(input: ChatInput): Promise<ChatOutput> {
+  return chatFlow(input);
+}
+
+const prompt = ai.definePrompt({
+  name: 'chatPrompt',
+  input: { schema: ChatInputSchema },
+  output: { schema: ChatOutputSchema },
+  tools: [findLocalEvents],
+  prompt: `You are 'Asisten Liburku', a friendly and highly capable AI travel assistant for Indonesia. Your goal is to help users plan their holidays.
+
+You can answer questions about Indonesian holidays, suggest travel ideas, create detailed itineraries, and find local events.
+
+Use the provided conversation history to maintain context. Respond in Bahasa Indonesia unless the user asks for English. Be helpful, creative, and clear.
+
+When creating itineraries, use the 'findLocalEvents' tool to check for local happenings to make the plan more exciting and relevant.
+
+Conversation History:
+{{#each history}}
+- {{role}}: {{{content}}}
+{{/each}}
+
+New User Message:
+- user: {{{message}}}
+
+Your response should be for the 'model' role.
+`,
+});
+
+const chatFlow = ai.defineFlow(
+  {
+    name: 'chatFlow',
+    inputSchema: ChatInputSchema,
+    outputSchema: ChatOutputSchema,
+  },
+  async (input) => {
+    const { output } = await prompt(input);
+    // Ensure we always return an object with a response property.
+    const responseText = output?.response || "Maaf, saya tidak dapat memproses permintaan Anda saat ini.";
+    return { response: responseText };
+  }
+);

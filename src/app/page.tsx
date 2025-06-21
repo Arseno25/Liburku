@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
-import { Calendar as CalendarIcon, Info, Wand2, CalendarDays } from 'lucide-react';
+import { Calendar as CalendarIcon, Info, Wand2, CalendarDays, Bot } from 'lucide-react';
+import Link from 'next/link';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -372,6 +373,16 @@ export default function Home() {
         weekend={inspirationData.weekend}
         preselectedTheme={inspirationData.theme}
       />
+
+      <Link
+        href="/chat"
+        passHref
+        className="fixed bottom-6 right-6 z-50 bg-primary text-primary-foreground h-14 w-14 rounded-full flex items-center justify-center shadow-lg hover:bg-primary/90 transition-transform hover:scale-110"
+        aria-label="Buka Asisten AI"
+        title="Buka Asisten AI"
+      >
+        <Bot className="h-7 w-7" />
+      </Link>
     </main>
   );
 }

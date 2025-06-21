@@ -23,6 +23,9 @@ export function MarkdownRenderer({ children }: MarkdownRendererProps) {
           <strong className="font-semibold" {...props} />
         ),
         p: ({ node, ...props }) => <p className="mb-2 last:mb-0" {...props} />,
+        a: ({ node, ...props }) => (
+          <a className="text-primary underline hover:opacity-80" target="_blank" rel="noopener noreferrer" {...props} />
+        ),
       }}
     >
       {children}

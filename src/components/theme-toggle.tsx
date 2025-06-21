@@ -11,21 +11,40 @@ export function ThemeToggle() {
   React.useEffect(() => {
     const storedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const initialTheme = storedTheme ?? (systemPrefersDark ? 'dark' : 'light');
 
-    if (storedTheme === 'dark' || (!storedTheme && systemPrefersDark)) {
-      document.documentElement.classList.add('dark');
-      setTheme('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-      setTheme('light');
-    }
+    setTheme(initialTheme);
+    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
   }, []);
 
-  const toggleTheme = () => {
-    const newTheme = theme === 'light' ? 'dark' : 'light';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
+  const toggleTheme = (event: React.MouseEvent<HTMLButtonElement>) => {
+    const isDark = document.documentElement.classList.contains('dark');
+    const newTheme = isDark ? 'light' : 'dark';
+
+    // Fallback for browsers that don't support the View Transitions API
+    if (!document.startViewTransition) {
+      setTheme(newTheme);
+      document.documentElement.classList.toggle('dark', !isDark);
+      localStorage.setItem('theme', newTheme);
+      return;
+    }
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const radius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    document.documentElement.style.setProperty('--x', x + 'px');
+    document.documentElement.style.setProperty('--y', y + 'px');
+    document.documentElement.style.setProperty('--r', radius + 'px');
+
+    document.startViewTransition(() => {
+      setTheme(newTheme);
+      document.documentElement.classList.toggle('dark', !isDark);
+      localStorage.setItem('theme', newTheme);
+    });
   };
 
   return (

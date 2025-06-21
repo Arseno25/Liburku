@@ -11,7 +11,6 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Holiday } from '@/types/holiday';
 import { useToast } from "@/hooks/use-toast"
 
-const currentYear = new Date().getFullYear();
 const years = Array.from({ length: 13 }, (_, i) => (2018 + i).toString());
 const months = Array.from({ length: 12 }, (_, i) => ({
   value: i.toString(),
@@ -20,7 +19,6 @@ const months = Array.from({ length: 12 }, (_, i) => ({
 
 export default function Home() {
   const { toast } = useToast();
-  const [year, setYear] = useState<string>(currentYear.toString());
   const [displayMonth, setDisplayMonth] = useState<Date>(startOfMonth(new Date()));
   const [holidays, setHolidays] = useState<Holiday[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
@@ -29,19 +27,27 @@ export default function Home() {
     const fetchHolidays = async () => {
       setLoading(true);
       try {
-        const isCurrentYear = parseInt(year) === currentYear;
-        const url = isCurrentYear
-          ? 'https://dayoffapi.vercel.app/api'
-          : `https://dayoffapi.vercel.app/api?year=${year}`;
+        const year = displayMonth.getFullYear();
+        const month = displayMonth.getMonth() + 1; // getMonth() is 0-indexed
+
+        const url = `https://dayoffapi.vercel.app/api?month=${month}&year=${year}`;
           
         const response = await fetch(url);
         if (!response.ok) {
           throw new Error('Failed to fetch holiday data.');
         }
-        const data: Holiday[] = await response.json();
-        setHolidays(data);
+        const data = await response.json();
+        
+        // The API might return an empty object {} if no holidays, handle this.
+        if (Array.isArray(data)) {
+            setHolidays(data);
+        } else {
+            setHolidays([]);
+        }
+        
       } catch (error) {
         console.error(error);
+        setHolidays([]); // Clear holidays on error
         toast({
           variant: "destructive",
           title: "Error",
@@ -53,25 +59,18 @@ export default function Home() {
     };
 
     fetchHolidays();
-  }, [year, toast]);
+  }, [displayMonth, toast]);
 
   const handleYearChange = (newYear: string) => {
-    setYear(newYear);
     const currentMonth = displayMonth.getMonth();
     setDisplayMonth(new Date(parseInt(newYear), currentMonth, 1));
   };
 
   const handleMonthChange = (newMonth: string) => {
-    setDisplayMonth(new Date(parseInt(year), parseInt(newMonth), 1));
+    const currentYear = displayMonth.getFullYear();
+    setDisplayMonth(new Date(currentYear, parseInt(newMonth), 1));
   };
   
-  useEffect(() => {
-    const newYear = displayMonth.getFullYear().toString();
-    if (newYear !== year) {
-        setYear(newYear);
-    }
-  }, [displayMonth, year]);
-
   return (
     <main className="min-h-screen w-full flex flex-col items-center p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-4xl mx-auto">
@@ -93,7 +92,7 @@ export default function Home() {
                 <CardDescription>Explore national holidays and joint leave days.</CardDescription>
               </div>
               <div className="flex flex-row gap-2 pt-4 sm:pt-0">
-                <Select value={year} onValueChange={handleYearChange}>
+                <Select value={displayMonth.getFullYear().toString()} onValueChange={handleYearChange}>
                   <SelectTrigger className="w-full sm:w-[120px]">
                     <SelectValue placeholder="Year" />
                   </SelectTrigger>

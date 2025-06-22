@@ -123,7 +123,7 @@ export function CustomCursor() {
     <div
       style={cursorStyle}
       className={cn(
-        'hidden md:block fixed pointer-events-none z-[9999]',
+        'hidden md:block fixed pointer-events-none z-20',
         { 'opacity-0': !isVisible }
       )}
     >

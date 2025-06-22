@@ -7,8 +7,10 @@ import { Button } from './ui/button';
 import { Separator } from './ui/separator';
 import { MarkdownRenderer } from './markdown-renderer';
 import { LongWeekend } from './long-weekend-planner';
-import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack, Wallet } from 'lucide-react';
+import { Wand2, CalendarDays, ImageIcon, Mountain, Waves, UtensilsCrossed, Landmark, FileText, Sparkles, Backpack, Wallet, LoaderCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+
 
 import { suggestActivity, SuggestActivityInput } from '@/ai/flows/suggest-long-weekend-activity-flow';
 import { generateActivityImage } from '@/ai/flows/generate-activity-image-flow';
@@ -72,9 +74,9 @@ export function SuggestionDialog({
     // State flags
     const [showThemeSelection, setShowThemeSelection] = useState(true);
     const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
-    const [isGeneratingItinerary, setIsGeneratingItinerary] = useState(false);
-    const [isGeneratingPackingList, setIsGeneratingPackingList] = useState(false);
-    const [isGeneratingBudget, setIsGeneratingBudget] = useState(false);
+    const [isGeneratingPlan, setIsGeneratingPlan] = useState(false);
+    const [isPlanReady, setIsPlanReady] = useState(false);
+
 
     const resetState = () => {
         setTheme('');
@@ -85,9 +87,8 @@ export function SuggestionDialog({
         setBudget('');
         setShowThemeSelection(true);
         setIsGeneratingSuggestion(false);
-        setIsGeneratingItinerary(false);
-        setIsGeneratingPackingList(false);
-        setIsGeneratingBudget(false);
+        setIsGeneratingPlan(false);
+        setIsPlanReady(false);
     };
 
     useEffect(() => {
@@ -116,10 +117,9 @@ export function SuggestionDialog({
                 userLocation: userLocation || undefined,
             };
             
-            // Generate suggestion and image in parallel
-            const [suggestionResult, imageResult] = await Promise.all([
+            // Generate suggestion and initial image in parallel
+            const [suggestionResult] = await Promise.all([
                 suggestActivity(suggestionInput),
-                generateActivityImage({ imagePrompt: `Sebuah foto perjalanan yang indah dan profesional dengan tema: ${selectedTheme}` })
             ]);
 
             setSuggestion(suggestionResult.suggestion);
@@ -137,11 +137,16 @@ export function SuggestionDialog({
         }
     };
 
-    const handleGenerateItinerary = async () => {
+    const handleGenerateFullPlan = async () => {
         if (!weekend || !suggestion || !theme) return;
-        setIsGeneratingItinerary(true);
+        setIsGeneratingPlan(true);
+        setIsPlanReady(false);
         setItinerary('');
+        setBudget('');
+        setPackingList('');
+
         try {
+            // First, generate the itinerary
             const itineraryInput: GenerateItineraryInput = {
                 holidayName: weekend.holidayName,
                 duration: weekend.duration,
@@ -150,66 +155,46 @@ export function SuggestionDialog({
                 suggestion: suggestion,
                 userLocation: userLocation || undefined,
             };
-            const result = await generateItinerary(itineraryInput);
-            setItinerary(result.itinerary);
-        } catch (error) {
-            console.error("Gagal membuat rencana perjalanan:", error);
-            setItinerary("Maaf, terjadi kesalahan saat membuat rencana perjalanan. Silakan coba lagi nanti.");
-        } finally {
-            setIsGeneratingItinerary(false);
-        }
-    };
-    
-    const handleGenerateBudget = async () => {
-        if (!weekend || !suggestion || !itinerary || !theme) return;
+            const itineraryResult = await generateItinerary(itineraryInput);
+            setItinerary(itineraryResult.itinerary);
 
-        setIsGeneratingBudget(true);
-        setBudget('');
-        try {
+            // Now that we have the itinerary, we can generate the budget and packing list in parallel
             const budgetInput: EstimateTripBudgetInput = {
                 duration: weekend.duration,
                 theme: theme,
                 suggestion: suggestion,
-                itinerary: itinerary,
+                itinerary: itineraryResult.itinerary,
                 userLocation: userLocation || undefined,
             };
-            const result = await estimateTripBudget(budgetInput);
-            setBudget(result.markdownBudget);
-        } catch (error) {
-            console.error("Gagal membuat estimasi anggaran:", error);
-            setBudget("Maaf, terjadi kesalahan saat membuat estimasi anggaran. Silakan coba lagi nanti.");
-        } finally {
-            setIsGeneratingBudget(false);
-        }
-    };
-
-    const handleGeneratePackingList = async () => {
-        if (!weekend || !suggestion || !itinerary || !theme) return;
-        setIsGeneratingPackingList(true);
-        setPackingList('');
-        try {
             const packingListInput: GeneratePackingListInput = {
                 duration: weekend.duration,
                 theme: theme,
                 suggestion: suggestion,
-                itinerary: itinerary,
+                itinerary: itineraryResult.itinerary,
             };
-            const result = await generatePackingList(packingListInput);
-            setPackingList(result.packingList);
+
+            const [budgetResult, packingListResult] = await Promise.all([
+                estimateTripBudget(budgetInput),
+                generatePackingList(packingListInput)
+            ]);
+
+            setBudget(budgetResult.markdownBudget);
+            setPackingList(packingListResult.packingList);
+            setIsPlanReady(true);
+
         } catch (error) {
-            console.error("Gagal membuat daftar barang bawaan:", error);
-            setPackingList("Maaf, terjadi kesalahan saat membuat daftar barang bawaan. Silakan coba lagi nanti.");
+            console.error("Gagal membuat rencana lengkap:", error);
+            toast({ variant: "destructive", title: "Gagal", description: "Tidak dapat menghasilkan rencana lengkap. Silakan coba lagi nanti." });
         } finally {
-            setIsGeneratingPackingList(false);
+            setIsGeneratingPlan(false);
         }
     };
 
     const isSuggestionReady = !showThemeSelection && !isGeneratingSuggestion && suggestion;
-    const isBudgetReady = !!budget;
-
+    
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-lg md:max-w-xl max-h-[90dvh] flex flex-col">
+            <DialogContent className="sm:max-w-lg md:max-w-2xl lg:max-w-3xl max-h-[90dvh] flex flex-col">
                 <DialogHeader>
                     <div className="flex items-center gap-3 mb-2">
                         <div className="p-2.5 bg-primary/10 rounded-lg">
@@ -267,11 +252,17 @@ export function SuggestionDialog({
                     {isSuggestionReady && (
                          <div className="space-y-4 animate-in fade-in-50 duration-300">
                             <div className="w-full aspect-video rounded-lg bg-muted flex items-center justify-center overflow-hidden border">
-                                <img
-                                    src={imageUrl}
-                                    alt={suggestion.substring(0, 100)}
-                                    className="w-full h-full object-cover"
-                                />
+                                {imageUrl ? (
+                                     <img
+                                        src={imageUrl}
+                                        alt={suggestion.substring(0, 100)}
+                                        className="w-full h-full object-cover"
+                                    />
+                                ) : (
+                                    <div className="h-full w-full flex flex-col items-center justify-center bg-transparent gap-3 text-muted-foreground animate-pulse">
+                                        <ImageIcon className="w-14 h-14" />
+                                    </div>
+                                )}
                             </div>
                             <div className="text-foreground/90">
                                 <p className="text-base leading-relaxed whitespace-pre-wrap">{suggestion}</p>
@@ -279,106 +270,52 @@ export function SuggestionDialog({
 
                             <Separator className="my-2" />
 
-                            {isGeneratingItinerary ? (
-                                <div className="space-y-4 pt-2">
-                                    <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-                                        <FileText className="w-6 h-6" />
-                                        <p className="font-medium">Membuat rencana perjalanan detail...</p>
-                                    </div>
-                                    <div className="space-y-3 pl-9">
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-full" />
-                                        <Skeleton className="h-4 w-4/5" />
+                            {isGeneratingPlan ? (
+                                <div className="space-y-4 pt-2 text-center">
+                                    <LoaderCircle className="w-8 h-8 text-primary animate-spin inline-block" />
+                                    <p className="font-medium text-muted-foreground">AI sedang menyusun rencana lengkap untuk Anda... Ini mungkin perlu waktu sejenak.</p>
+                                    <Skeleton className="h-10 w-full rounded-md" />
+                                    <div className="border rounded-lg p-4 mt-4">
+                                        <Skeleton className="h-32 w-full" />
                                     </div>
                                 </div>
-                            ) : itinerary ? (
-                                <div className="space-y-4 animate-in fade-in-50">
-                                    <div>
-                                        <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
-                                            <FileText className="w-5 h-5 text-primary" />
-                                            Rencana Perjalanan
-                                        </h4>
-                                        <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
-                                            <MarkdownRenderer>{itinerary}</MarkdownRenderer>
-                                        </div>
-                                    </div>
-
-                                    <Separator className="my-4" />
-
-                                    {/* Budget Section */}
-                                    {isGeneratingBudget ? (
-                                        <div className="space-y-4 pt-2">
-                                            <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-                                                <Wallet className="w-6 h-6" />
-                                                <p className="font-medium">Menyusun estimasi anggaran...</p>
-                                            </div>
-                                            <div className="pl-9 space-y-2">
-                                                <Skeleton className="h-4 w-full" />
-                                                <Skeleton className="h-4 w-4/5" />
-                                            </div>
-                                        </div>
-                                    ) : isBudgetReady ? (
-                                        <div className="animate-in fade-in-50">
-                                            <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
-                                                <Wallet className="w-5 h-5 text-primary" />
-                                                Estimasi Anggaran
-                                            </h4>
-                                            <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
-                                                <MarkdownRenderer>{budget}</MarkdownRenderer>
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center">
-                                            <Button onClick={handleGenerateBudget} disabled={isGeneratingBudget} data-magnetic>
-                                                <Wallet className="mr-2 h-4 w-4" />
-                                                Buatkan Estimasi Anggaran
-                                            </Button>
-                                        </div>
-                                    )}
-                                    
-                                    {/* Packing List Section appears after budget is done */}
-                                    {isBudgetReady && (
-                                        <>
-                                            <Separator className="my-4" />
-                                            {isGeneratingPackingList ? (
-                                                <div className="space-y-4 pt-2">
-                                                    <div className="flex items-center gap-3 text-muted-foreground animate-pulse">
-                                                        <Backpack className="w-6 h-6" />
-                                                        <p className="font-medium">Menyiapkan daftar barang bawaan...</p>
-                                                    </div>
-                                                    <div className="space-y-3 pl-9">
-                                                        <Skeleton className="h-4 w-full" />
-                                                        <Skeleton className="h-4 w-full" />
-                                                        <Skeleton className="h-4 w-4/5" />
-                                                    </div>
-                                                </div>
-                                            ) : packingList ? (
-                                                <div className="animate-in fade-in-50">
-                                                    <h4 className="font-semibold text-lg flex items-center gap-2.5 mb-2">
-                                                        <Backpack className="w-5 h-5 text-primary" />
-                                                        Daftar Barang Bawaan
-                                                    </h4>
-                                                    <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
-                                                        <MarkdownRenderer>{packingList}</MarkdownRenderer>
-                                                    </div>
-                                                </div>
-                                            ) : (
-                                                <div className="text-center">
-                                                    <Button onClick={handleGeneratePackingList} disabled={isGeneratingPackingList} data-magnetic>
-                                                        <Backpack className="mr-2 h-4 w-4" />
-                                                        Buatkan Daftar Barang Bawaan
-                                                    </Button>
-                                                </div>
-                                            )}
-                                        </>
-                                    )}
+                            ) : !isPlanReady ? (
+                                <div className="text-center pt-2">
+                                    <Button size="lg" onClick={handleGenerateFullPlan} disabled={isGeneratingPlan} data-magnetic>
+                                        <Sparkles className="mr-2 h-5 w-5" />
+                                        Buatkan Rencana Lengkap!
+                                    </Button>
                                 </div>
                             ) : (
-                                <div className="text-center pt-2">
-                                    <Button onClick={handleGenerateItinerary} disabled={isGeneratingItinerary} data-magnetic>
-                                        <Sparkles className="mr-2 h-4 w-4" />
-                                        Buatkan Rencana Perjalanan
-                                    </Button>
+                                <div className="animate-in fade-in-50">
+                                     <Tabs defaultValue="itinerary" className="w-full">
+                                        <TabsList className="grid w-full grid-cols-3" data-magnetic>
+                                            <TabsTrigger value="itinerary"><FileText className="mr-2 h-4 w-4"/>Rencana Perjalanan</TabsTrigger>
+                                            <TabsTrigger value="budget"><Wallet className="mr-2 h-4 w-4"/>Estimasi Anggaran</TabsTrigger>
+                                            <TabsTrigger value="packing"><Backpack className="mr-2 h-4 w-4"/>Daftar Bawaan</TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="itinerary">
+                                            <Card>
+                                                <CardContent className="p-4 md:p-6" data-magnetic>
+                                                    <MarkdownRenderer>{itinerary}</MarkdownRenderer>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+                                        <TabsContent value="budget">
+                                            <Card>
+                                                <CardContent className="p-4 md:p-6" data-magnetic>
+                                                    <MarkdownRenderer>{budget}</MarkdownRenderer>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+                                        <TabsContent value="packing">
+                                            <Card>
+                                                <CardContent className="p-4 md:p-6" data-magnetic>
+                                                     <MarkdownRenderer>{packingList}</MarkdownRenderer>
+                                                </CardContent>
+                                            </Card>
+                                        </TabsContent>
+                                    </Tabs>
                                 </div>
                             )}
                         </div>

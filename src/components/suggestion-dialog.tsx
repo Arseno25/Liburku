@@ -233,6 +233,7 @@ export function SuggestionDialog({
                                         variant="outline"
                                         className="py-6 flex-col gap-2 h-auto text-base"
                                         onClick={() => handleThemeSelect(t.name)}
+                                        data-magnetic
                                     >
                                         <t.icon className="w-6 h-6 text-primary" />
                                         <span>{t.name}</span>
@@ -292,7 +293,7 @@ export function SuggestionDialog({
                                             <FileText className="w-5 h-5 text-primary" />
                                             Rencana Perjalanan
                                         </h4>
-                                        <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
+                                        <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
                                             <MarkdownRenderer>{itinerary}</MarkdownRenderer>
                                         </div>
                                     </div>
@@ -317,13 +318,13 @@ export function SuggestionDialog({
                                                 <Wallet className="w-5 h-5 text-primary" />
                                                 Estimasi Anggaran
                                             </h4>
-                                            <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
+                                            <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
                                                 <MarkdownRenderer>{budget}</MarkdownRenderer>
                                             </div>
                                         </div>
                                     ) : (
                                         <div className="text-center">
-                                            <Button onClick={handleGenerateBudget} disabled={isGeneratingBudget}>
+                                            <Button onClick={handleGenerateBudget} disabled={isGeneratingBudget} data-magnetic>
                                                 <Wallet className="mr-2 h-4 w-4" />
                                                 Buatkan Estimasi Anggaran
                                             </Button>
@@ -352,13 +353,13 @@ export function SuggestionDialog({
                                                         <Backpack className="w-5 h-5 text-primary" />
                                                         Daftar Barang Bawaan
                                                     </h4>
-                                                    <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed">
+                                                    <div className="text-sm bg-muted/30 border p-4 rounded-lg leading-relaxed" data-magnetic>
                                                         <MarkdownRenderer>{packingList}</MarkdownRenderer>
                                                     </div>
                                                 </div>
                                             ) : (
                                                 <div className="text-center">
-                                                    <Button onClick={handleGeneratePackingList} disabled={isGeneratingPackingList}>
+                                                    <Button onClick={handleGeneratePackingList} disabled={isGeneratingPackingList} data-magnetic>
                                                         <Backpack className="mr-2 h-4 w-4" />
                                                         Buatkan Daftar Barang Bawaan
                                                     </Button>
@@ -369,7 +370,7 @@ export function SuggestionDialog({
                                 </div>
                             ) : (
                                 <div className="text-center pt-2">
-                                    <Button onClick={handleGenerateItinerary} disabled={isGeneratingItinerary}>
+                                    <Button onClick={handleGenerateItinerary} disabled={isGeneratingItinerary} data-magnetic>
                                         <Sparkles className="mr-2 h-4 w-4" />
                                         Buatkan Rencana Perjalanan
                                     </Button>

@@ -86,9 +86,14 @@ const chatFlow = ai.defineFlow(
     outputSchema: ChatOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    // Ensure we always return an object with a response property.
-    const responseText = output?.response || "Maaf, saya tidak dapat memproses permintaan Anda saat ini.";
-    return { response: responseText };
+    try {
+      const { output } = await prompt(input);
+      // Ensure we always return an object with a response property.
+      const responseText = output?.response || "Maaf, saya tidak dapat memproses permintaan Anda saat ini.";
+      return { response: responseText };
+    } catch (e) {
+      console.error("Error in chatFlow:", e);
+      return { response: "Maaf, terjadi kesalahan. Silakan coba lagi." };
+    }
   }
 );

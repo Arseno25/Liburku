@@ -60,7 +60,12 @@ const generatePackingListFlow = ai.defineFlow(
     outputSchema: GeneratePackingListOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output || { packingList: 'Maaf, saya tidak dapat membuat daftar bawaan saat ini. Silakan coba lagi.' };
+    try {
+      const { output } = await prompt(input);
+      return output || { packingList: 'Maaf, saya tidak dapat membuat daftar bawaan saat ini. Silakan coba lagi.' };
+    } catch(e) {
+      console.error("Error in generatePackingListFlow:", e);
+      return { packingList: 'Maaf, terjadi kesalahan saat membuat daftar bawaan. Silakan coba lagi.' };
+    }
   }
 );

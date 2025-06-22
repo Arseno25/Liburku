@@ -83,7 +83,12 @@ const generateItineraryFlow = ai.defineFlow(
     outputSchema: GenerateItineraryOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input);
-    return output || { itinerary: 'Maaf, saya tidak dapat membuat rencana perjalanan saat ini. Silakan coba lagi.' };
+    try {
+      const { output } = await prompt(input);
+      return output || { itinerary: 'Maaf, saya tidak dapat membuat rencana perjalanan saat ini. Silakan coba lagi.' };
+    } catch (e) {
+      console.error("Error in generateItineraryFlow:", e);
+      return { itinerary: 'Maaf, terjadi kesalahan saat membuat rencana perjalanan. Silakan coba lagi.' };
+    }
   }
 );

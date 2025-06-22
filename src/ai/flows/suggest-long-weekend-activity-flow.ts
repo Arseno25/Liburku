@@ -60,10 +60,18 @@ const suggestActivityFlow = ai.defineFlow(
     outputSchema: SuggestActivityOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
-    return output || {
-        suggestion: 'Maaf, saya tidak dapat memberikan saran aktivitas saat ini. Silakan coba lagi.',
-        imagePrompt: 'error message on a computer screen'
-    };
+    try {
+      const {output} = await prompt(input);
+      return output || {
+          suggestion: 'Maaf, saya tidak dapat memberikan saran aktivitas saat ini. Silakan coba lagi.',
+          imagePrompt: 'error message on a computer screen'
+      };
+    } catch(e) {
+      console.error("Error in suggestActivityFlow:", e);
+      return {
+          suggestion: 'Maaf, terjadi kesalahan saat memberikan saran aktivitas. Silakan coba lagi.',
+          imagePrompt: 'error message on a computer screen'
+      };
+    }
   }
 );

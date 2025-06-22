@@ -45,7 +45,12 @@ const explainHolidayFlow = ai.defineFlow(
     outputSchema: ExplainHolidayOutputSchema,
   },
   async (input) => {
-    const {output} = await prompt(input);
-    return output || { explanation: 'Maaf, saya tidak dapat memberikan penjelasan saat ini.' };
+    try {
+      const {output} = await prompt(input);
+      return output || { explanation: 'Maaf, saya tidak dapat memberikan penjelasan saat ini.' };
+    } catch (e) {
+      console.error("Error in explainHolidayFlow:", e);
+      return { explanation: 'Maaf, terjadi kesalahan saat memberikan penjelasan. Silakan coba lagi.' };
+    }
   }
 );

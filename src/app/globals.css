@@ -69,15 +69,17 @@
   }
 
   .custom-cursor-box {
-    z-index: 39; /* Below chat widget (z-40) and dialogs (z-50) */
+    /* Below header (z-30) but above normal content */
+    z-index: 29;
   }
 
   .custom-cursor-dot {
     z-index: 9999; /* Always on top */
   }
 
+  /* When welcome dialog is open, bring the box to the front as well */
   html[data-welcome-open='true'] .custom-cursor-box {
-    z-index: 9999; /* Above everything when welcome dialog is open */
+    z-index: 9999;
   }
 }
 

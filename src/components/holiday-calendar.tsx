@@ -1,26 +1,22 @@
-
 'use client';
 
 import * as React from 'react';
-import { DayContent, DayPickerProps } from 'react-day-picker';
-import { format } from 'date-fns';
-import { id } from 'date-fns/locale';
+import Calendar from 'react-calendar';
+import type { TileClassNameFunc, OnClickFunc } from 'react-calendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { explainHoliday } from '@/ai/flows/explain-holiday-flow';
 import { generateSpeech } from '@/ai/flows/text-to-speech-flow';
 import { LoaderCircle, Sparkles, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-
 import { Holiday } from '@/types/holiday';
-import { Calendar } from '@/components/ui/calendar';
-import { cn } from '@/lib/utils';
 
-interface HolidayCalendarProps extends DayPickerProps {
+interface HolidayCalendarProps {
+  activeStartDate: Date;
   holidays: Holiday[];
 }
 
-export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
+export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedHoliday, setSelectedHoliday] = React.useState<Holiday | null>(null);
   const [explanation, setExplanation] = React.useState('');
@@ -34,7 +30,7 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
         parsedDate: new Date(h.tanggal.replace(/-/g, '/'))
     }));
   }, [holidays]);
-  
+
   const handleHolidayClick = async (holiday: Holiday) => {
     if (!holiday) return;
     setSelectedHoliday(holiday);
@@ -71,72 +67,46 @@ export function HolidayCalendar({ holidays, ...props }: HolidayCalendarProps) {
     }
   };
 
+  const getHolidayForDate = (date: Date): Holiday | undefined => {
+    const dateString = date.toDateString();
+    return parsedHolidays.find(h => h.parsedDate.toDateString() === dateString);
+  }
 
-  const CustomDay = (dayProps: React.ComponentProps<typeof DayContent>) => {
-    const dayDateString = dayProps.date.toDateString();
-    
-    const holiday = parsedHolidays.find(
-      (h) => h.parsedDate.toDateString() === dayDateString
-    );
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isToday = dayProps.date.getTime() === today.getTime();
-    const isSunday = dayProps.date.getDay() === 0;
-
-    const dayNumber = <DayContent {...dayProps} />;
-
-    if (holiday) {
-      return (
-        <div
-          onClick={() => handleHolidayClick(holiday)}
-          className={cn(
-            'flex h-full w-full cursor-pointer items-center justify-center rounded-full font-semibold transition-transform hover:scale-110',
-            holiday.is_cuti
-              ? 'bg-warning text-warning-foreground'
-              : 'bg-destructive text-destructive-foreground'
-          )}
-        >
-          {dayNumber}
-        </div>
-      );
+  const tileClassName: TileClassNameFunc = ({ date, view }) => {
+    if (view === 'month') {
+      const holiday = getHolidayForDate(date);
+      if (holiday) {
+        return holiday.is_cuti ? 'joint-leave' : 'national-holiday';
+      }
+      
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      if (date.getTime() === today.getTime()) {
+        return 'today';
+      }
     }
-
-    // For all other days, use a consistent wrapper for alignment.
-    return (
-      <div className={cn(
-          "flex h-full w-full items-center justify-center", // This ensures all text is centered.
-          isToday && "rounded-full bg-primary/20 font-bold",
-          isToday && isSunday && "text-destructive",
-          isToday && !isSunday && "text-primary",
-          !isToday && isSunday && "font-medium text-destructive"
-      )}>
-        {dayNumber}
-      </div>
-    )
+    return null;
   };
+
+  const onClickDay: OnClickFunc = (value, event) => {
+    const holiday = getHolidayForDate(value);
+    if (holiday) {
+      handleHolidayClick(holiday);
+    }
+  }
 
   return (
     <>
-      <div className="w-full transition-opacity flex justify-center duration-500 ease-in-out animate-in fade-in-50" key={props.month?.toString()}>
-        <Calendar
-          locale={id}
-          weekStartsOn={0}
-          formatters={{
-            formatWeekdayName: (day) => {
-              const dayName = format(day, 'eee', { locale: id });
-              if (day.getDay() === 0) {
-                return <span className="text-destructive">{dayName}</span>;
-              }
-              return dayName;
-            },
-          }}
-          components={{
-            DayContent: CustomDay,
-          }}
-          {...props}
-        />
-      </div>
+      <Calendar
+        activeStartDate={activeStartDate}
+        onActiveStartDateChange={() => {}} // prevent nav
+        showNavigation={false}
+        tileClassName={tileClassName}
+        onClickDay={onClickDay}
+        formatShortWeekday={(locale, date) => date.toLocaleDateString('id-ID', { weekday: 'short' }).slice(0, 2)}
+        locale="id-ID"
+        className="w-full"
+      />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">

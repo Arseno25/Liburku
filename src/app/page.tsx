@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Calendar as CalendarIcon, Wand2, CalendarDays, Bot } from 'lucide-react';
+import './react-calendar.css';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -311,7 +312,7 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="p-0 sm:p-2 md:p-4">
+          <CardContent className="p-2 md:p-4">
             {loading ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {Array.from({ length: 12 }).map((_, i) => (
@@ -345,19 +346,10 @@ export default function Home() {
                           {(monthIndex + 1).toString().padStart(2, '0')}
                         </div>
                       </CardHeader>
-                      <CardContent className="flex-grow flex p-0">
+                      <CardContent className="flex-grow flex p-2 justify-center">
                         <HolidayCalendar
-                          month={monthDate}
+                          activeStartDate={monthDate}
                           holidays={holidays}
-                          showOutsideDays
-                          fixedWeeks
-                          classNames={{
-                            caption: 'hidden',
-                            table: 'w-full border-collapse',
-                            cell: "h-9 w-9 text-center text-sm p-0 relative",
-                            day: "h-full w-full p-0 text-xs",
-                            head_cell: "h-9 w-9 text-muted-foreground text-center font-semibold text-[0.8rem]",
-                          }}
                         />
                       </CardContent>
                     </Card>

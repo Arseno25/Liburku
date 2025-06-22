@@ -16,6 +16,9 @@ export function CustomCursor() {
   const [isVisible, setIsVisible] = useState(false);
   const magneticElementRef = useRef<HTMLElement | null>(null);
 
+  const boxRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+
   const isMagnetic = !!magneticRect;
 
   const updateMagneticRect = useCallback(() => {
@@ -31,7 +34,16 @@ export function CustomCursor() {
       const { clientX, clientY } = e;
       setPosition({ x: clientX, y: clientY });
       
+      const box = boxRef.current;
+
+      // Hide the box momentarily to perform an accurate hit test.
+      if (box) box.style.visibility = 'hidden';
+      
       const topElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+
+      // Restore the box's visibility immediately after the test.
+      if (box) box.style.visibility = 'visible';
+      
       const newMagneticElement = topElement?.closest<HTMLElement>('[data-magnetic]') || null;
 
       if (newMagneticElement !== magneticElementRef.current) {
@@ -114,6 +126,7 @@ export function CustomCursor() {
     <>
       {/* The magnetic box with corners. This has a lower z-index. */}
       <div
+        ref={boxRef}
         style={boxStyle}
         className={cn(
           'custom-cursor-box hidden md:block fixed pointer-events-none',
@@ -128,6 +141,7 @@ export function CustomCursor() {
 
       {/* The central dot. This has a very high z-index. */}
       <div
+        ref={dotRef}
         style={dotStyle}
         className={cn(
           'custom-cursor-dot hidden md:block fixed pointer-events-none',

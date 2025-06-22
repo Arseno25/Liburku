@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 
 // --- Configuration ---
@@ -13,39 +13,55 @@ const DOT_SIZE_MAGNETIC = 8;
 
 export function CustomCursor() {
   const [position, setPosition] = useState({ x: -100, y: -100 });
-  const [isMagnetic, setIsMagnetic] = useState(false);
   const [magneticRect, setMagneticRect] = useState<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const magneticElementRef = useRef<HTMLElement | null>(null); // Use ref to avoid re-renders on element change
+
+  const isMagnetic = !!magneticRect;
+
+  const updateMagneticRect = useCallback(() => {
+    if (magneticElementRef.current) {
+      setMagneticRect(magneticElementRef.current.getBoundingClientRect());
+    } else {
+      setMagneticRect(null);
+    }
+  }, []);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       setPosition({ x: e.clientX, y: e.clientY });
-
+      
       const target = e.target as HTMLElement;
-      const magneticElement = target.closest<HTMLElement>('[data-magnetic]');
+      const newMagneticElement = target.closest<HTMLElement>('[data-magnetic]');
 
-      if (magneticElement) {
-        setIsMagnetic(true);
-        setMagneticRect(magneticElement.getBoundingClientRect());
-      } else {
-        setIsMagnetic(false);
-        setMagneticRect(null);
+      if (newMagneticElement !== magneticElementRef.current) {
+        magneticElementRef.current = newMagneticElement;
+        updateMagneticRect();
       }
+    };
+
+    const handleScroll = () => {
+        // Only update if there's an active magnetic element
+        if (magneticElementRef.current) {
+            updateMagneticRect();
+        }
     };
 
     const handleMouseEnter = () => setIsVisible(true);
     const handleMouseLeave = () => setIsVisible(false);
 
     document.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('scroll', handleScroll, true); // Listen on window for all scrolls
     document.documentElement.addEventListener('mouseenter', handleMouseEnter);
     document.documentElement.addEventListener('mouseleave', handleMouseLeave);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('scroll', handleScroll, true);
       document.documentElement.removeEventListener('mouseenter', handleMouseEnter);
       document.documentElement.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, []);
+  }, [updateMagneticRect]);
 
   const cursorStyle: React.CSSProperties = isMagnetic && magneticRect
     ? {

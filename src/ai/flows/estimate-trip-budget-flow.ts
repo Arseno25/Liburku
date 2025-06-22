@@ -65,6 +65,6 @@ const estimateTripBudgetFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output!;
+    return output || { markdownBudget: 'Maaf, saya tidak dapat membuat estimasi anggaran saat ini. Silakan coba lagi.' };
   }
 );

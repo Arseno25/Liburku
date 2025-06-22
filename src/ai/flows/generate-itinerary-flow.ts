@@ -84,6 +84,6 @@ const generateItineraryFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output!;
+    return output || { itinerary: 'Maaf, saya tidak dapat membuat rencana perjalanan saat ini. Silakan coba lagi.' };
   }
 );

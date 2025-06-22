@@ -61,6 +61,9 @@ const suggestActivityFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input);
-    return output!;
+    return output || {
+        suggestion: 'Maaf, saya tidak dapat memberikan saran aktivitas saat ini. Silakan coba lagi.',
+        imagePrompt: 'error message on a computer screen'
+    };
   }
 );

@@ -61,6 +61,6 @@ const generatePackingListFlow = ai.defineFlow(
   },
   async (input) => {
     const { output } = await prompt(input);
-    return output!;
+    return output || { packingList: 'Maaf, saya tidak dapat membuat daftar bawaan saat ini. Silakan coba lagi.' };
   }
 );

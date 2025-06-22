@@ -46,6 +46,6 @@ const explainHolidayFlow = ai.defineFlow(
   },
   async (input) => {
     const {output} = await prompt(input);
-    return output!;
+    return output || { explanation: 'Maaf, saya tidak dapat memberikan penjelasan saat ini.' };
   }
 );

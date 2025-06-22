@@ -226,6 +226,7 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
                 key={index}
                 onClick={() => handleWeekendClick(weekend)}
                 className="p-4 border rounded-lg bg-card hover:bg-accent/50 hover:border-primary/50 transition-all cursor-pointer group"
+                data-magnetic
               >
                 <div className="flex justify-between items-start gap-4">
                     <div className="flex-grow">

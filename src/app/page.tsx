@@ -338,6 +338,7 @@ export default function Home() {
                       key={monthIndex} 
                       ref={(el) => (monthRefs.current[monthIndex] = el)}
                       className="flex flex-col bg-card/70 transition-shadow duration-300 hover:shadow-lg"
+                      data-magnetic
                     >
                       <CardHeader className="flex flex-row items-center justify-between p-3 border-b">
                         <h3 className="text-base font-semibold text-foreground">
@@ -351,6 +352,7 @@ export default function Home() {
                         <HolidayCalendar
                           activeStartDate={monthDate}
                           holidays={holidays}
+                          calendarType="US"
                         />
                       </CardContent>
                     </Card>
@@ -372,7 +374,7 @@ export default function Home() {
             )}
           </div>
           <div className="lg:col-span-1">
-             <Card className="w-full sticky top-28">
+             <Card className="w-full sticky top-28" data-magnetic>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">

@@ -39,7 +39,7 @@ export const findLocalEvents = ai.defineTool(
             }))
         })
       },
-      model: 'googleai/gemini-1.5-flash-preview', // Use a fact-based model
+      model: 'googleai/gemini-2.0-flash', // Use the app's default fact-based model
     });
 
     return output || { events: [] };

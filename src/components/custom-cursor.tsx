@@ -9,13 +9,13 @@ const CURSOR_BOX_SIZE = 24;
 const CORNER_SIZE = 8;
 const MAGNETIC_PADDING = 6;
 const DOT_SIZE_DEFAULT = 6;
-const DOT_SIZE_MAGNETIC = 8;
+const DOT_SIZE_MAGNETIC = 12;
 
 export function CustomCursor() {
   const [position, setPosition] = useState({ x: -100, y: -100 });
   const [magneticRect, setMagneticRect] = useState<DOMRect | null>(null);
   const [isVisible, setIsVisible] = useState(false);
-  const magneticElementRef = useRef<HTMLElement | null>(null); // Use ref to avoid re-renders on element change
+  const magneticElementRef = useRef<HTMLElement | null>(null);
 
   const isMagnetic = !!magneticRect;
 
@@ -41,7 +41,6 @@ export function CustomCursor() {
     };
 
     const handleScroll = () => {
-        // Only update if there's an active magnetic element
         if (magneticElementRef.current) {
             updateMagneticRect();
         }
@@ -51,7 +50,7 @@ export function CustomCursor() {
     const handleMouseLeave = () => setIsVisible(false);
 
     document.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('scroll', handleScroll, true); // Listen on window for all scrolls
+    window.addEventListener('scroll', handleScroll, true);
     document.documentElement.addEventListener('mouseenter', handleMouseEnter);
     document.documentElement.addEventListener('mouseleave', handleMouseLeave);
 
@@ -63,7 +62,8 @@ export function CustomCursor() {
     };
   }, [updateMagneticRect]);
 
-  const cursorStyle: React.CSSProperties = isMagnetic && magneticRect
+  // Style for the magnetic BOX (which contains the corners)
+  const boxStyle: React.CSSProperties = isMagnetic && magneticRect
     ? {
         width: magneticRect.width + MAGNETIC_PADDING * 2,
         height: magneticRect.height + MAGNETIC_PADDING * 2,
@@ -81,28 +81,19 @@ export function CustomCursor() {
         transition: 'top 0.1s, left 0.1s',
         transitionTimingFunction: 'linear',
       };
-
-    const dotStyle: React.CSSProperties = {
-        position: 'absolute',
-        width: isMagnetic ? DOT_SIZE_MAGNETIC : DOT_SIZE_DEFAULT,
-        height: isMagnetic ? DOT_SIZE_MAGNETIC : DOT_SIZE_DEFAULT,
-        backgroundColor: 'hsl(var(--primary))',
-        borderRadius: '50%',
-        transition: 'width 0.2s, height 0.2s, transform 0.2s cubic-bezier(0.25, 1, 0.5, 1)',
-        pointerEvents: 'none',
-    };
-    
-    if (isMagnetic && magneticRect) {
-        dotStyle.transform = `translate(
-            ${position.x - (magneticRect.left - MAGNETIC_PADDING) - (DOT_SIZE_MAGNETIC / 2)}px,
-            ${position.y - (magneticRect.top - MAGNETIC_PADDING) - (DOT_SIZE_MAGNETIC / 2)}px
-        )`;
-    } else {
-        dotStyle.transform = `translate(
-            ${CURSOR_BOX_SIZE / 2 - (DOT_SIZE_DEFAULT / 2)}px,
-            ${CURSOR_BOX_SIZE / 2 - (DOT_SIZE_DEFAULT / 2)}px
-        )`;
-    }
+      
+  // Style for the central DOT
+  const dotStyle: React.CSSProperties = {
+    top: position.y,
+    left: position.x,
+    width: isMagnetic ? DOT_SIZE_MAGNETIC : DOT_SIZE_DEFAULT,
+    height: isMagnetic ? DOT_SIZE_MAGNETIC : DOT_SIZE_DEFAULT,
+    transform: 'translate(-50%, -50%)',
+    transition: 'width 0.2s, height 0.2s cubic-bezier(0.25, 1, 0.5, 1)',
+    backgroundColor: 'hsl(var(--primary))',
+    borderRadius: '50%',
+    mixBlendMode: isMagnetic ? 'difference' : 'normal',
+  };
 
   const cornerBaseStyle: React.CSSProperties = {
     position: 'absolute',
@@ -120,18 +111,29 @@ export function CustomCursor() {
   };
 
   return (
-    <div
-      style={cursorStyle}
-      className={cn(
-        'custom-cursor hidden md:block fixed pointer-events-none',
-        { 'opacity-0': !isVisible }
-      )}
-    >
-      <div style={dotStyle} />
-      <div style={corners.topLeft} />
-      <div style={corners.topRight} />
-      <div style={corners.bottomLeft} />
-      <div style={corners.bottomRight} />
-    </div>
+    <>
+      {/* The magnetic box with corners. This has a lower z-index. */}
+      <div
+        style={boxStyle}
+        className={cn(
+          'custom-cursor-box hidden md:block fixed pointer-events-none',
+          { 'opacity-0': !isVisible }
+        )}
+      >
+        <div style={corners.topLeft} />
+        <div style={corners.topRight} />
+        <div style={corners.bottomLeft} />
+        <div style={corners.bottomRight} />
+      </div>
+
+      {/* The central dot. This has a very high z-index. */}
+      <div
+        style={dotStyle}
+        className={cn(
+          'custom-cursor-dot hidden md:block fixed pointer-events-none',
+          { 'opacity-0': !isVisible }
+        )}
+      />
+    </>
   );
 }

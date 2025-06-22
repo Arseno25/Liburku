@@ -68,11 +68,15 @@
     }
   }
 
-  .custom-cursor {
+  .custom-cursor-box {
     z-index: 39; /* Below chat widget (z-40) and dialogs (z-50) */
   }
 
-  html[data-welcome-open='true'] .custom-cursor {
+  .custom-cursor-dot {
+    z-index: 9999; /* Always on top */
+  }
+
+  html[data-welcome-open='true'] .custom-cursor-box {
     z-index: 9999; /* Above everything when welcome dialog is open */
   }
 }

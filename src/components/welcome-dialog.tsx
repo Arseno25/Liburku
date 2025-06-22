@@ -98,7 +98,7 @@ export function WelcomeDialog({ isOpen, onOpenChange }: WelcomeDialogProps) {
             </div>
         </div>
         <DialogFooter className="mt-auto pt-4 flex-col sm:flex-row sm:justify-between sm:items-center gap-4 border-t">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-2" data-magnetic>
             <Checkbox
               id="dont-show-again"
               checked={dontShowAgain}
@@ -108,7 +108,9 @@ export function WelcomeDialog({ isOpen, onOpenChange }: WelcomeDialogProps) {
               Jangan tampilkan lagi
             </Label>
           </div>
-          <Button onClick={handleClose} className="w-full sm:w-auto">Mulai Jelajahi</Button>
+          <Button onClick={handleClose} className="w-full sm:w-auto" data-magnetic>
+            Mulai Jelajahi
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster"
 import { Inter } from "next/font/google";
 import { cn } from '@/lib/utils';
 import { CustomCursor } from '@/components/custom-cursor';
+import { Analytics } from "@vercel/analytics/next"
 
 const fontSans = Inter({
   subsets: ['latin'],
@@ -27,6 +28,7 @@ export default function RootLayout({
         <CustomCursor />
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );

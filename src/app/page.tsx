@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import Calendar from 'react-calendar';
 import { Calendar as CalendarIcon, Wand2, CalendarDays, Bot } from 'lucide-react';
 import './react-calendar.css';
 

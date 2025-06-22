@@ -352,7 +352,6 @@ export default function Home() {
                         <HolidayCalendar
                           activeStartDate={monthDate}
                           holidays={holidays}
-                          calendarType="US"
                         />
                       </CardContent>
                     </Card>

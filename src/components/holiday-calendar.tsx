@@ -14,10 +14,9 @@ import { Holiday } from '@/types/holiday';
 interface HolidayCalendarProps {
   activeStartDate: Date;
   holidays: Holiday[];
-  calendarType?: 'US' | 'ISO 8601' | 'Arabic' | 'Hebrew' | 'gregory' | undefined;
 }
 
-export function HolidayCalendar({ activeStartDate, holidays, calendarType }: HolidayCalendarProps) {
+export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarProps) {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [selectedHoliday, setSelectedHoliday] = React.useState<Holiday | null>(null);
   const [explanation, setExplanation] = React.useState('');
@@ -113,7 +112,6 @@ export function HolidayCalendar({ activeStartDate, holidays, calendarType }: Hol
         onClickDay={onClickDay}
         formatShortWeekday={(locale, date) => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][date.getDay()]}
         className="w-full"
-        calendarType={calendarType}
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

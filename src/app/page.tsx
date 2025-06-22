@@ -57,6 +57,17 @@ export default function Home() {
   // State for scroll detection
   const [scrolled, setScrolled] = useState(false);
 
+  // Add/remove data attribute to html tag based on welcome dialog state for cursor z-index
+  useEffect(() => {
+    if (isWelcomeOpen) {
+      document.documentElement.setAttribute('data-welcome-open', 'true');
+    } else {
+      if (document.documentElement.hasAttribute('data-welcome-open')) {
+        document.documentElement.removeAttribute('data-welcome-open');
+      }
+    }
+  }, [isWelcomeOpen]);
+
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 10);

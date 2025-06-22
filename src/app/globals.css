@@ -67,6 +67,14 @@
       cursor: none;
     }
   }
+
+  .custom-cursor {
+    z-index: 39; /* Below chat widget (z-40) and dialogs (z-50) */
+  }
+
+  html[data-welcome-open='true'] .custom-cursor {
+    z-index: 9999; /* Above everything when welcome dialog is open */
+  }
 }
 
 ::view-transition-old(root),

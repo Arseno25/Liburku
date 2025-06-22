@@ -148,6 +148,7 @@ export function SuggestionDialog({
                 dateRange: formatDateRange(weekend.startDate, weekend.endDate),
                 theme: theme,
                 suggestion: suggestion,
+                userLocation: userLocation || undefined,
             };
             const result = await generateItinerary(itineraryInput);
             setItinerary(result.itinerary);
@@ -170,6 +171,7 @@ export function SuggestionDialog({
                 theme: theme,
                 suggestion: suggestion,
                 itinerary: itinerary,
+                userLocation: userLocation || undefined,
             };
             const result = await estimateTripBudget(budgetInput);
             setBudget(result.markdownBudget);

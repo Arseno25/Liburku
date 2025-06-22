@@ -103,75 +103,152 @@ export default function Home() {
   }, []);
 
   const upcomingLongWeekends = useMemo(() => {
-      const allUpcoming: LongWeekend[] = [];
+    if (holidays.length === 0) return [];
+  
+    const findWeekends = (isSaturdayWorkday: boolean): LongWeekend[] => {
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-
-      const holidayDates = new Set(holidays.map(h => new Date(h.tanggal.replace(/-/g, '/')).toDateString()));
-
-      const processHolidays = (filteredHolidays: Holiday[], isSaturdayWorkday: boolean) => {
-          let upcomingHolidays = filteredHolidays
-            .map(h => ({ ...h, dateObj: new Date(h.tanggal.replace(/-/g, '/')) }))
-            .filter(h => h.dateObj.getFullYear() === selectedYear && h.dateObj >= today);
-
-          for (const holiday of upcomingHolidays) {
-              const date = holiday.dateObj;
-              const day = date.getDay();
-
-              if (day === 0) continue;
-              if (day === 6 && isSaturdayWorkday) continue;
-              
-              let potentialWeekend: Omit<LongWeekend, 'title'> | null = null;
-              
-              if (day === 1) { // Monday
-                  const weekendEnd = date;
-                  const weekendStart = new Date(date);
-                  let duration;
-                  if (isSaturdayWorkday) { weekendStart.setDate(date.getDate() - 1); duration = 2; } 
-                  else { weekendStart.setDate(date.getDate() - 2); duration = 3; }
-                  potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration: duration };
-              } else if (day === 2) { // Tuesday ("Harpitnas" on Monday)
-                  const monday = new Date(date);
-                  monday.setDate(date.getDate() - 1);
-                  if (!holidayDates.has(monday.toDateString())) {
-                      const weekendEnd = date;
-                      const weekendStart = new Date(date);
-                      let duration;
-                      if (isSaturdayWorkday) { weekendStart.setDate(date.getDate() - 2); duration = 3; } 
-                      else { weekendStart.setDate(date.getDate() - 3); duration = 4; }
-                      potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration, suggestion: 'Ambil cuti pada hari Senin' };
-                  }
-              } else if (day === 4 && !isSaturdayWorkday) { // Thursday ("Harpitnas" on Friday)
-                  const friday = new Date(date);
-                  friday.setDate(date.getDate() + 1);
-                  if (!holidayDates.has(friday.toDateString())) {
-                      const weekendStart = date;
-                      const weekendEnd = new Date(date);
-                      weekendEnd.setDate(date.getDate() + 3);
-                      potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration: 4, suggestion: 'Ambil cuti pada hari Jumat' };
-                  }
-              } else if (day === 5) { // Friday
-                  const weekendStart = date;
-                  const weekendEnd = new Date(date);
-                  let duration, suggestion;
-                  if (isSaturdayWorkday) { weekendEnd.setDate(date.getDate() + 2); duration = 3; suggestion = 'Ambil cuti pada hari Sabtu';} 
-                  else { weekendEnd.setDate(date.getDate() + 2); duration = 3; }
-                  potentialWeekend = { startDate: weekendStart, endDate: weekendEnd, holidayName: holiday.keterangan, duration, suggestion };
-              }
-
-              if(potentialWeekend) {
-                  allUpcoming.push({ ...potentialWeekend, title: potentialWeekend.suggestion ? 'Potensi Libur Panjang' : 'Libur Panjang Akhir Pekan'});
-              }
-          }
+  
+      const relevantHolidays = holidays
+        .map(h => ({ ...h, dateObj: new Date(h.tanggal.replace(/-/g, '/')) }))
+        .filter(h => h.dateObj.getFullYear() === selectedYear);
+  
+      const holidayDateSet = new Set(relevantHolidays.map(h => h.dateObj.toDateString()));
+      const holidayMap = new Map(relevantHolidays.map(h => [h.dateObj.toDateString(), h.keterangan]));
+      
+      const sortedUpcomingHolidays = relevantHolidays
+        .filter(h => h.dateObj >= today)
+        .sort((a, b) => a.dateObj.getTime() - b.dateObj.getTime());
+  
+      const isOffDay = (date: Date): boolean => {
+        const day = date.getDay();
+        if (day === 0) return true; // Sunday
+        if (day === 6 && !isSaturdayWorkday) return true; // Saturday for 5-day week
+        return holidayDateSet.has(date.toDateString());
       };
-
-      // Process for both schedules to get all possibilities
-      processHolidays(holidays, false); // Senin-Jumat
-      processHolidays(holidays, true);  // Senin-Sabtu
-
-      // Remove duplicates
-      const uniqueWeekends = Array.from(new Map(allUpcoming.map(w => [w.startDate.getTime(), w])).values());
-      return uniqueWeekends.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+  
+      const allWeekends: LongWeekend[] = [];
+      const processedDates = new Set<string>();
+  
+      // Pass 1: Find concrete long weekends
+      for (const holiday of sortedUpcomingHolidays) {
+        const holidayDate = holiday.dateObj;
+        if (processedDates.has(holidayDate.toDateString())) continue;
+  
+        let currentStart = new Date(holidayDate);
+        while (true) {
+          const prevDay = new Date(currentStart);
+          prevDay.setDate(currentStart.getDate() - 1);
+          if (isOffDay(prevDay)) {
+            currentStart = prevDay;
+          } else {
+            break;
+          }
+        }
+        const startDate = currentStart;
+  
+        let currentEnd = new Date(holidayDate);
+        while (true) {
+          const nextDay = new Date(currentEnd);
+          nextDay.setDate(currentEnd.getDate() + 1);
+          if (isOffDay(nextDay)) {
+            currentEnd = nextDay;
+          } else {
+            break;
+          }
+        }
+        const endDate = currentEnd;
+  
+        const duration = (endDate.getTime() - startDate.getTime()) / (1000 * 3600 * 24) + 1;
+        
+        if (duration >= (isSaturdayWorkday ? 2 : 3)) {
+          let d = new Date(startDate);
+          const holidaysInWeekend: string[] = [];
+          while (d <= endDate) {
+            const dString = d.toDateString();
+            if (holidayMap.has(dString)) {
+              holidaysInWeekend.push(holidayMap.get(dString)!);
+              processedDates.add(dString);
+            }
+            d.setDate(d.getDate() + 1);
+          }
+          allWeekends.push({
+            title: 'Libur Panjang Akhir Pekan',
+            startDate,
+            endDate,
+            holidayName: holidaysInWeekend.join(' & '),
+            duration,
+          });
+        }
+      }
+  
+      // Pass 2: Find potential long weekends (Harpitnas)
+      for (const holiday of sortedUpcomingHolidays) {
+        const holidayDate = holiday.dateObj;
+        const day = holidayDate.getDay();
+  
+        if (day === 2) { // Tuesday holiday
+          const monday = new Date(holidayDate);
+          monday.setDate(holidayDate.getDate() - 1);
+          if (!isOffDay(monday)) {
+            const weekendStart = new Date(holidayDate);
+            weekendStart.setDate(holidayDate.getDate() - (isSaturdayWorkday ? 2 : 3));
+            allWeekends.push({
+              title: 'Potensi Libur Panjang',
+              startDate: weekendStart,
+              endDate: holidayDate,
+              holidayName: holiday.keterangan,
+              duration: isSaturdayWorkday ? 3 : 4,
+              suggestion: 'Ambil cuti pada hari Senin',
+            });
+          }
+        }
+  
+        if (day === 4 && !isSaturdayWorkday) { // Thursday holiday
+          const friday = new Date(holidayDate);
+          friday.setDate(holidayDate.getDate() + 1);
+          if (!isOffDay(friday)) {
+            const weekendEnd = new Date(holidayDate);
+            weekendEnd.setDate(holidayDate.getDate() + 3);
+            allWeekends.push({
+              title: 'Potensi Libur Panjang',
+              startDate: holidayDate,
+              endDate: weekendEnd,
+              holidayName: holiday.keterangan,
+              duration: 4,
+              suggestion: 'Ambil cuti pada hari Jumat',
+            });
+          }
+        }
+  
+        if (day === 5 && isSaturdayWorkday) { // Friday holiday, but Sat is work
+          const saturday = new Date(holidayDate);
+          saturday.setDate(holidayDate.getDate() + 1);
+          if (!isOffDay(saturday)) {
+            const weekendEnd = new Date(holidayDate);
+            weekendEnd.setDate(holidayDate.getDate() + 2);
+            allWeekends.push({
+              title: 'Potensi Libur Panjang',
+              startDate: holidayDate,
+              endDate: weekendEnd,
+              holidayName: holiday.keterangan,
+              duration: 3,
+              suggestion: 'Ambil cuti pada hari Sabtu',
+            });
+          }
+        }
+      }
+      return allWeekends;
+    }
+  
+    // Get all possibilities for "Surprise Me"
+    const weekends5day = findWeekends(false);
+    const weekends6day = findWeekends(true);
+  
+    const combined = [...weekends5day, ...weekends6day];
+    const uniqueWeekends = Array.from(new Map(combined.map(w => [`${w.startDate.getTime()}-${w.endDate.getTime()}-${w.suggestion || ''}`, w])).values());
+  
+    return uniqueWeekends.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
   }, [holidays, selectedYear]);
 
   const handleSurpriseMe = async () => {

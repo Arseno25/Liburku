@@ -28,7 +28,7 @@
   color: hsl(var(--foreground));
 }
 
-.react-calendar__month-view__days__day--weekend:not(.national-holiday):not(.joint-leave) {
+.sunday:not(.national-holiday):not(.joint-leave) {
   color: hsl(var(--destructive));
 }
 
@@ -42,6 +42,8 @@
   align-items: center;
   justify-content: center;
   height: 2.25rem; /* h-9 */
+  width: 2.25rem; /* Make it a square */
+  margin: 0 auto; /* Center it */
   max-width: 100%;
   padding: 0;
   background: none;

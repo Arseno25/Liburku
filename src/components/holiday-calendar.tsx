@@ -74,16 +74,23 @@ export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarPr
 
   const tileClassName: TileClassNameFunc = ({ date, view }) => {
     if (view === 'month') {
+      const classes = [];
       const holiday = getHolidayForDate(date);
       if (holiday) {
-        return holiday.is_cuti ? 'joint-leave' : 'national-holiday';
+        classes.push(holiday.is_cuti ? 'joint-leave' : 'national-holiday');
       }
       
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       if (date.getTime() === today.getTime()) {
-        return 'today';
+        classes.push('today');
       }
+      
+      if (date.getDay() === 0) { // Sunday
+        classes.push('sunday');
+      }
+
+      return classes.length > 0 ? classes.join(' ') : null;
     }
     return null;
   };
@@ -103,7 +110,7 @@ export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarPr
         showNavigation={false}
         tileClassName={tileClassName}
         onClickDay={onClickDay}
-        formatShortWeekday={(locale, date) => date.toLocaleDateString('id-ID', { weekday: 'short' }).slice(0, 2)}
+        formatShortWeekday={(locale, date) => date.toLocaleDateString('id-ID', { weekday: 'short' })}
         locale="id-ID"
         className="w-full"
       />

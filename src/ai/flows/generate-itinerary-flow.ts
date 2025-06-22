@@ -35,7 +35,7 @@ const prompt = ai.definePrompt({
   input: { schema: GenerateItineraryInputSchema },
   output: { schema: GenerateItineraryOutputSchema },
   tools: [findLocalEvents],
-  prompt: `You are a professional and highly intuitive travel planner for Indonesia. Your task is to create a detailed, day-by-day travel itinerary based on a user's request. You are capable of creating both standard travel plans and local "staycation" style plans.
+  prompt: `You are a professional and highly intuitive travel planner for Indonesia with deep cultural awareness. Your task is to create a detailed, day-by-day travel itinerary based on a user's request.
 
 Here are the trip details:
 - User's Request: "{{suggestion}}"
@@ -44,6 +44,14 @@ Here are the trip details:
 - Dates: {{dateRange}}
 - Desired Theme: {{theme}}
 {{#if userLocation}}- User's Location: {{userLocation}}{{/if}}
+
+**CRITICAL RULE: Religious Holiday Priority**
+If the holiday '{{holidayName}}' is a major religious holiday, your itinerary for the **first day of the holiday** MUST prioritize time for worship or observance in the morning before any other activities.
+- For Islamic holidays (Idul Fitri/Adha), start the day's plan with "Pagi: Melaksanakan Shalat Ied dan silaturahmi bersama keluarga."
+- For Christian holidays (Natal, Paskah, Wafat Isa Al Masih), suggest "Pagi: Menghadiri ibadah di gereja dan berkumpul bersama keluarga."
+- For Buddhist holidays (Waisak), suggest "Pagi: Meditasi atau mengikuti prosesi Waisak di wihara terdekat."
+- For Hindu holidays (Nyepi in Bali), the itinerary for that specific day MUST be about observing Catur Brata Penyepian (staying at home/hotel, fasting, meditating).
+Only after this initial period of worship/observance should you suggest leisure or travel activities for the rest of the day.
 
 **VERY IMPORTANT: Local vs. Travel Itinerary**
 Your most important task is to first determine if this is a local trip or a trip that requires travel and accommodation.
@@ -60,8 +68,9 @@ Your most important task is to first determine if this is a local trip or a trip
 **Itinerary Generation Steps:**
 1.  **Analyze the Request**: Determine the destination(s) from "{{suggestion}}".
 2.  **Determine Trip Type**: Based on the rule above, decide if it's LOCAL or TRAVEL.
-3.  **Find Local Events**: For each primary location, use the 'findLocalEvents' tool to check for special events happening during the specified dates.
-4.  **Generate the Itinerary**:
+3.  **Prioritize Religion**: Apply the **CRITICAL RULE** for religious holidays.
+4.  **Find Local Events**: For each primary location, use the 'findLocalEvents' tool to check for special events happening during the specified dates.
+5.  **Generate the Itinerary**:
     *   Structure the output in simple Markdown.
     *   For multi-destination trips, use a main heading for each city and the days allocated (e.g., "### Hari 1-3: Jakarta").
     *   Use a subheading for each day (e.g., "**Hari 1: Kedatangan & Jelajah Kota Tua**").

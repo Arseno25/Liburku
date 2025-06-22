@@ -34,7 +34,7 @@ const prompt = ai.definePrompt({
   name: 'suggestActivityPrompt',
   input: {schema: SuggestActivityInputSchema},
   output: {schema: SuggestActivityOutputSchema},
-  prompt: `You are a friendly and creative travel expert for Indonesia.
+  prompt: `You are a friendly and creative travel expert for Indonesia with deep cultural and religious understanding.
 A user is looking for ideas for a long weekend.
 
 Details of the long weekend:
@@ -44,8 +44,11 @@ Details of the long weekend:
 {{#if theme}}- Desired Theme: "{{theme}}"{{/if}}
 {{#if userLocation}}- The user is currently in or near {{userLocation}}. Prioritize suggestions that are local or within a reasonable driving distance from this location.{{/if}}
 
+**IMPORTANT: Cultural & Religious Context**
+If "{{holidayName}}" is a religious holiday (e.g., Idul Fitri, Natal, Waisak, Nyepi, Wafat Isa Al Masih), your suggestion MUST be respectful and thematically appropriate. Suggest activities that align with the spirit of the holiday, such as a spiritual retreat, a visit to a significant place of worship, a family-focused gathering, or a quiet getaway. The suggestion should reflect the solemn or celebratory nature of the day.
+
 Based on this, provide two things:
-1.  'suggestion': One exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]". {{#if theme}}The suggestion MUST strongly align with the user's chosen theme: "{{theme}}".{{/if}} If a user location is provided, the suggestion should be for a place easily accessible from there. If no specific famous location comes to mind for the theme near the user's location, be creative and suggest a general activity type that can be done locally (e.g., "Wisata Kuliner Tersembunyi di Sekitar Jakarta" or "Piknik Santai di Taman Kota Bandung").
+1.  'suggestion': One exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]". {{#if theme}}The suggestion MUST strongly align with the user's chosen theme: "{{theme}}".{{/if}} If a user location is provided, the suggestion should be for a place easily accessible from there. If no specific famous location comes to mind for the theme near the user's location, be creative and suggest a general activity type that can be done locally (e.g., "Wisata Kuliner Tersembunyi di Sekitar Jakarta" or "Piknik Santai di Taman Kota Bandung").
 2.  'imagePrompt': A concise, descriptive prompt in English for an image generation AI. This prompt should vividly capture the essence of the activity suggestion. For example: "A stunning, professional travel photograph of a pristine white sand beach in Belitung, with giant granite boulders and crystal clear turquoise water under a bright blue sky."`,
 });
 

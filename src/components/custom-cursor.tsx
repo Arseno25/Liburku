@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
@@ -29,10 +28,11 @@ export function CustomCursor() {
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
+      const { clientX, clientY } = e;
+      setPosition({ x: clientX, y: clientY });
       
-      const target = e.target as HTMLElement;
-      const newMagneticElement = target.closest<HTMLElement>('[data-magnetic]');
+      const topElement = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+      const newMagneticElement = topElement?.closest<HTMLElement>('[data-magnetic]') || null;
 
       if (newMagneticElement !== magneticElementRef.current) {
         magneticElementRef.current = newMagneticElement;

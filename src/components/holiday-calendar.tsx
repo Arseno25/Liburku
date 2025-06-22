@@ -117,14 +117,21 @@ export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarPr
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-md max-h-[85vh] flex flex-col">
           <DialogHeader>
-             <div className="flex items-center justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-primary/10 rounded-lg">
+             <div className="flex items-center justify-between gap-3 pr-8">
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="p-2.5 bg-primary/10 rounded-lg flex-shrink-0">
                   <Sparkles className="w-6 h-6 text-primary" />
                 </div>
                 <DialogTitle className="text-xl font-semibold">{selectedHoliday?.keterangan}</DialogTitle>
               </div>
-               <Button variant="outline" size="icon" onClick={handleListenClick} disabled={isGenerating || isGeneratingAudio || !explanation}>
+               <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleListenClick}
+                  disabled={isGenerating || isGeneratingAudio || !explanation}
+                  data-magnetic
+                  className="flex-shrink-0"
+               >
                   {isGeneratingAudio ? <LoaderCircle className="w-5 h-5 animate-spin" /> : <Volume2 className="w-5 h-5" />}
                   <span className="sr-only">Dengarkan Penjelasan</span>
               </Button>

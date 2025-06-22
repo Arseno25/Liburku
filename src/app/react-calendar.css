@@ -42,13 +42,13 @@
   align-items: center;
   justify-content: center;
   height: 2.25rem; /* h-9 */
-  width: 2.25rem; /* Make it a square */
-  margin: 0 auto; /* Center it */
+  width: 2.25rem; /* w-9, ensures it's a square */
+  margin: 0 auto; /* Horizontally center the square tile in its container */
   max-width: 100%;
   padding: 0;
   background: none;
   border: none;
-  border-radius: 9999px; /* rounded-full */
+  border-radius: 9999px; /* rounded-full to make the square a circle */
   font-size: 0.75rem; /* text-xs */
   line-height: 1rem;
   transition: background-color 0.2s, color 0.2s, transform 0.2s;
@@ -58,8 +58,8 @@
   background-color: transparent;
 }
 
-.react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus {
+.react-calendar__tile:not(.national-holiday):not(.joint-leave):enabled:hover,
+.react-calendar__tile:not(.national-holiday):not(.joint-leave):enabled:focus {
   background-color: hsl(var(--accent));
 }
 
@@ -77,16 +77,10 @@
   background-color: hsl(var(--destructive));
   color: hsl(var(--destructive-foreground));
 }
-.national-holiday:hover {
-  background-color: hsl(var(--destructive) / 0.9);
-}
 
 .joint-leave {
   background-color: hsl(var(--warning));
   color: hsl(var(--warning-foreground));
-}
-.joint-leave:hover {
-    background-color: hsl(var(--warning) / 0.9);
 }
 
 .today {

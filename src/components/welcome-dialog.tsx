@@ -32,8 +32,8 @@ const features = [
   },
   {
     icon: Route,
-    title: 'Perencana Multi-Destinasi',
-    description: 'Rencanakan perjalanan epik melintasi beberapa kota dalam satu itinerary.',
+    title: 'Master Perjalanan Multi-Destinasi',
+    description: 'Minta AI merencanakan tur antar-kota yang kompleks, lengkap dengan alokasi hari dan riset acara lokal di setiap perhentian.',
   },
   {
     icon: FileText,

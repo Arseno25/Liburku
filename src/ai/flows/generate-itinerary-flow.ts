@@ -53,29 +53,24 @@ If the holiday '{{holidayName}}' is a major religious holiday, your itinerary fo
 - For Hindu holidays (Nyepi in Bali), the itinerary for that specific day MUST be about observing Catur Brata Penyepian (staying at home/hotel, fasting, meditating).
 Only after this initial period of worship/observance should you suggest leisure or travel activities for the rest of the day.
 
-**VERY IMPORTANT: Local vs. Travel Itinerary**
-Your most important task is to first determine if this is a local trip or a trip that requires travel and accommodation.
-- A trip is **LOCAL** if the destination in "{{suggestion}}" appears to be the same city as the "User's Location".
-- If it is a **LOCAL** trip (staycation/day-trip):
-    - **DO NOT** mention or suggest booking hotels, guesthouses, or any form of accommodation.
-    - Structure the plan assuming the user starts from and returns to their home each day.
-    - Use phrases like "Pagi: Berangkat dari rumah menuju..." or "Sore: Kembali ke rumah untuk beristirahat."
-    - Focus on activities within the city.
-- If it is a **TRAVEL** trip (the destination is different from the user's location) or a multi-destination trip:
-    - You can implicitly assume accommodation is needed. Structure it like a normal travel plan.
-    - For multi-destination trips, intelligently allocate the {{duration}} days among the locations. For example, for a 10-day Jakarta-Yogya-Bali trip, you might allocate 2 days for Jakarta, 3 for Yogyakarta, 4 for Bali, and 1 for travel.
+**VERY IMPORTANT: Local vs. Travel Itinerary & Multi-Destination Trips**
+Your first task is to analyze the trip type.
+-   **Multi-Destination Trip**: If the "{{suggestion}}" describes a trip to multiple cities (e.g., "Tur Jawa-Bali"), you must intelligently allocate the {{duration}} days among the locations. For EACH city, you MUST use the 'findLocalEvents' tool to check for special events. The final Markdown output must have a main heading for each city (e.g., "### Hari 1-3: Jakarta").
+-   **Local/Staycation Trip**: If the destination in "{{suggestion}}" is the same as the "User's Location", this is a local trip.
+    -   **DO NOT** mention or suggest booking hotels or any form of accommodation.
+    -   Structure the plan assuming the user starts from and returns to their home each day.
+-   **Standard Travel Trip**: If it's a trip to a single destination different from the user's location, you can assume accommodation is needed. You MUST use the 'findLocalEvents' tool for that location.
 
 **Itinerary Generation Steps:**
-1.  **Analyze the Request**: Determine the destination(s) from "{{suggestion}}".
-2.  **Determine Trip Type**: Based on the rule above, decide if it's LOCAL or TRAVEL.
-3.  **Prioritize Religion**: Apply the **CRITICAL RULE** for religious holidays.
-4.  **Find Local Events**: For each primary location, use the 'findLocalEvents' tool to check for special events happening during the specified dates.
-5.  **Generate the Itinerary**:
+1.  **Analyze Request**: Determine destination(s) from "{{suggestion}}".
+2.  **Determine Trip Type**: Use the rules above (Multi-Destination, Local, or Standard).
+3.  **Prioritize Religion**: Apply the CRITICAL RULE for religious holidays.
+4.  **Find Local Events**: Use the 'findLocalEvents' tool for each primary destination in the trip. This is mandatory.
+5.  **Generate Itinerary**:
     *   Structure the output in simple Markdown.
-    *   For multi-destination trips, use a main heading for each city and the days allocated (e.g., "### Hari 1-3: Jakarta").
-    *   Use a subheading for each day (e.g., "**Hari 1: Kedatangan & Jelajah Kota Tua**").
-    *   Provide bullet points for suggested activities (pagi, siang, malam).
-    *   If the tool found events, integrate them naturally into the plan (e.g., "Sore: Menyaksikan parade Ogoh-ogoh.").
+    *   Use subheadings for each day (e.g., "**Hari 1: Kedatangan & Jelajah Kota Tua**").
+    *   Provide bullet points for activities (pagi, siang, malam).
+    *   Integrate any events found with the tool naturally into the plan.
     *   Include recommendations for places to eat that fit the theme.
     *   Keep the language in Bahasa Indonesia. Make it sound helpful and inspiring.
 `,

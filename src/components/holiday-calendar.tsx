@@ -112,6 +112,7 @@ export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarPr
         onClickDay={onClickDay}
         formatShortWeekday={(locale, date) => ['Min', 'Sen', 'Sel', 'Rab', 'Kam', 'Jum', 'Sab'][date.getDay()]}
         className="w-full"
+        calendarType="US"
       />
 
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>

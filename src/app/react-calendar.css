@@ -41,16 +41,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-
-  /* --- The Fix --- */
-  /* We explicitly set width and height to be equal */
   width: 2.25rem;
   height: 2.25rem;
-  
-  /* We use justify-self to center the tile within its grid cell */
   justify-self: center;
-  
-  /* The rest of the styling for the circle and text */
   padding: 0;
   background: none;
   border: none;

@@ -69,8 +69,8 @@
   }
 
   .custom-cursor-box {
-    /* Below header (z-30) but above normal content */
-    z-index: 29;
+    /* Between dialogs (z-50) and header (z-60) */
+    z-index: 51;
   }
 
   .custom-cursor-dot {

@@ -47,6 +47,7 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
 export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocation }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
   const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
+  const [collectiveLeavePolicy, setCollectiveLeavePolicy] = useState<'mengikuti' | 'tidak'>('mengikuti');
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedWeekend, setSelectedWeekend] = useState<LongWeekend | null>(null);
@@ -55,6 +56,14 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocati
     onScrollToMonth?.(weekend.startDate.getMonth());
     setSelectedWeekend(weekend);
     setIsDialogOpen(true);
+  };
+
+  const handleEmploymentTypeChange = (value: 'pns' | 'private') => {
+    setEmploymentType(value);
+    // PNS/ASN always follow government collective leave policy.
+    if (value === 'pns') {
+      setCollectiveLeavePolicy('mengikuti');
+    }
   };
   
   const longWeekends = useMemo(() => {
@@ -68,9 +77,11 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocati
       .map(h => ({ ...h, dateObj: new Date(h.tanggal.replace(/-/g, '/')) }))
       .filter(h => h.dateObj.getFullYear() === year);
 
-    if (employmentType === 'private') {
+    // For private employees who do not follow the collective leave policy, filter out those days.
+    if (employmentType === 'private' && collectiveLeavePolicy === 'tidak') {
       relevantHolidays = relevantHolidays.filter(h => !h.is_cuti);
     }
+    
     if (relevantHolidays.length === 0) return [];
 
     const holidayDateSet = new Set(relevantHolidays.map(h => h.dateObj.toDateString()));
@@ -206,7 +217,7 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocati
     const uniqueWeekends = Array.from(new Map(allWeekends.map(w => [`${w.startDate.getTime()}-${w.endDate.getTime()}-${w.suggestion || ''}`, w])).values());
     
     return uniqueWeekends.sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
-  }, [holidays, year, employmentType, workSchedule]);
+  }, [holidays, year, employmentType, workSchedule, collectiveLeavePolicy]);
 
 
   return (
@@ -223,42 +234,65 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocati
             </div>
           </div>
           <div className="pt-4 mt-4 border-t">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
-                        <RadioGroup
-                            value={employmentType}
-                            onValueChange={(value: 'pns' | 'private') => setEmploymentType(value)}
-                            className="flex items-center gap-4 mt-2"
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="pns" id="pns" />
-                                <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="private" id="private" />
-                                <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-                    <div>
-                        <Label className="text-xs font-semibold text-muted-foreground">Jadwal Kerja</Label>
-                        <RadioGroup
-                            value={workSchedule}
-                            onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
-                            className="flex items-center gap-4 mt-2"
-                        >
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="senin-jumat" id="senin-jumat" />
-                                <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">5 Hari Kerja</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                                <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
-                                <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">6 Hari Kerja</Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                <div>
+                    <Label className="text-xs font-semibold text-muted-foreground">Tipe Kepegawaian</Label>
+                    <RadioGroup
+                        value={employmentType}
+                        onValueChange={(value: 'pns' | 'private') => handleEmploymentTypeChange(value)}
+                        className="flex items-center gap-4 mt-2"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="pns" id="pns" />
+                            <Label htmlFor="pns" className="font-normal cursor-pointer">PNS / ASN</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="private" id="private" />
+                            <Label htmlFor="private" className="font-normal cursor-pointer">Swasta</Label>
+                        </div>
+                    </RadioGroup>
                 </div>
+                <div>
+                    <Label className="text-xs font-semibold text-muted-foreground">Jadwal Kerja</Label>
+                    <RadioGroup
+                        value={workSchedule}
+                        onValueChange={(value: 'senin-jumat' | 'senin-sabtu') => setWorkSchedule(value)}
+                        className="flex items-center gap-4 mt-2"
+                    >
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="senin-jumat" id="senin-jumat" />
+                            <Label htmlFor="senin-jumat" className="font-normal cursor-pointer">5 Hari Kerja</Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                            <RadioGroupItem value="senin-sabtu" id="senin-sabtu" />
+                            <Label htmlFor="senin-sabtu" className="font-normal cursor-pointer">6 Hari Kerja</Label>
+                        </div>
+                    </RadioGroup>
+                </div>
+
+                {employmentType === 'private' && (
+                  <div className="sm:col-span-2 animate-in fade-in-50 duration-300">
+                      <Label className="text-xs font-semibold text-muted-foreground">Kebijakan Cuti Bersama Perusahaan</Label>
+                      <RadioGroup
+                          value={collectiveLeavePolicy}
+                          onValueChange={(value: 'mengikuti' | 'tidak') => setCollectiveLeavePolicy(value)}
+                          className="flex items-center gap-4 mt-2"
+                      >
+                          <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="mengikuti" id="mengikuti" />
+                              <Label htmlFor="mengikuti" className="font-normal cursor-pointer">Mengikuti anjuran pemerintah</Label>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                              <RadioGroupItem value="tidak" id="tidak" />
+                              <Label htmlFor="tidak" className="font-normal cursor-pointer">Tidak mengikuti (hari kerja biasa)</Label>
+                          </div>
+                      </RadioGroup>
+                      <p className="text-xs text-muted-foreground mt-2">
+                          Beberapa perusahaan swasta mungkin tidak mengikuti kebijakan cuti bersama dari pemerintah.
+                      </p>
+                  </div>
+                )}
+            </div>
           </div>
         </CardHeader>
         <CardContent className="grid gap-4">

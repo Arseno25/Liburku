@@ -21,6 +21,7 @@ interface LongWeekendPlannerProps {
   holidays: Holiday[];
   year: number;
   onScrollToMonth?: (monthIndex: number) => void;
+  userLocation?: string | null;
 }
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -43,7 +44,7 @@ const formatDateRange = (startDate: Date, endDate: Date) => {
     }
 }
 
-export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeekendPlannerProps) {
+export function LongWeekendPlanner({ holidays, year, onScrollToMonth, userLocation }: LongWeekendPlannerProps) {
   const [employmentType, setEmploymentType] = useState<'pns' | 'private'>('pns');
   const [workSchedule, setWorkSchedule] = useState<'senin-jumat' | 'senin-sabtu'>('senin-jumat');
 
@@ -263,6 +264,7 @@ export function LongWeekendPlanner({ holidays, year, onScrollToMonth }: LongWeek
         isOpen={isDialogOpen}
         onOpenChange={setIsDialogOpen}
         weekend={selectedWeekend}
+        userLocation={userLocation}
       />
     </>
   );

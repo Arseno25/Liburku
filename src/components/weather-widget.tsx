@@ -84,7 +84,11 @@ const wmoWeatherCodes: { [key: number]: string } = {
   99: 'Badai Petir & Hujan Es Lebat',
 };
 
-export function WeatherWidget() {
+interface WeatherWidgetProps {
+  onLocationUpdate?: (location: string) => void;
+}
+
+export function WeatherWidget({ onLocationUpdate }: WeatherWidgetProps) {
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -133,6 +137,10 @@ export function WeatherWidget() {
           const city = locationData.address?.city || locationData.address?.town || locationData.address?.village || locationData.address?.county;
           const locationString = city || 'Lokasi tidak diketahui';
 
+          if (onLocationUpdate) {
+            onLocationUpdate(locationString);
+          }
+
           setWeather({
             temperature: Math.round(weatherData.current.temperature_2m),
             weatherCode: weatherCode,
@@ -159,7 +167,7 @@ export function WeatherWidget() {
         setLoading(false);
       }
     );
-  }, []);
+  }, [onLocationUpdate]);
 
   const WeatherIcon = weather ? weatherIcons[weather.weatherCode] || Cloud : null;
 

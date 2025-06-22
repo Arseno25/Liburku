@@ -15,6 +15,7 @@ const SuggestActivityInputSchema = z.object({
   duration: z.number().describe('The total duration of the long weekend in days.'),
   dateRange: z.string().describe('The date range of the long weekend.'),
   theme: z.string().optional().describe('Tema yang dipilih pengguna untuk saran aktivitas.'),
+  userLocation: z.string().optional().describe('The user\'s current city (e.g., "Jakarta") to suggest nearby activities.'),
 });
 export type SuggestActivityInput = z.infer<typeof SuggestActivityInputSchema>;
 
@@ -41,9 +42,10 @@ Details of the long weekend:
 - Duration: {{duration}} days
 - Dates: {{dateRange}}
 {{#if theme}}- Desired Theme: "{{theme}}"{{/if}}
+{{#if userLocation}}- The user is currently in or near {{userLocation}}. Prioritize suggestions that are local or within a reasonable driving distance from this location.{{/if}}
 
 Based on this, provide two things:
-1.  'suggestion': One exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]". {{#if theme}}The suggestion MUST strongly align with the user's chosen theme: "{{theme}}".{{/if}}
+1.  'suggestion': One exciting and practical travel or activity suggestion in Bahasa Indonesia. Make the suggestion sound inspiring and helpful, around 3-4 sentences. Consider the theme of the holiday if it's relevant (e.g., religious, national). Start with a creative title like "Petualangan Seru di [Lokasi]" or "Relaksasi Maksimal di [Lokasi]". {{#if theme}}The suggestion MUST strongly align with the user's chosen theme: "{{theme}}".{{/if}} If a user location is provided, the suggestion should be for a place easily accessible from there. If no specific famous location comes to mind for the theme near the user's location, be creative and suggest a general activity type that can be done locally (e.g., "Wisata Kuliner Tersembunyi di Sekitar Jakarta" or "Piknik Santai di Taman Kota Bandung").
 2.  'imagePrompt': A concise, descriptive prompt in English for an image generation AI. This prompt should vividly capture the essence of the activity suggestion. For example: "A stunning, professional travel photograph of a pristine white sand beach in Belitung, with giant granite boulders and crystal clear turquoise water under a bright blue sky."`,
 });
 

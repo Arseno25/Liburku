@@ -28,6 +28,7 @@ interface SuggestionDialogProps {
     onOpenChange: (open: boolean) => void;
     weekend: LongWeekend | null;
     preselectedTheme?: string;
+    userLocation?: string | null;
 }
 
 const dayNames = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -55,7 +56,8 @@ export function SuggestionDialog({
     isOpen,
     onOpenChange,
     weekend,
-    preselectedTheme = ''
+    preselectedTheme = '',
+    userLocation
 }: SuggestionDialogProps) {
     const { toast } = useToast();
 
@@ -111,6 +113,7 @@ export function SuggestionDialog({
                 duration: weekend.duration,
                 dateRange: formatDateRange(weekend.startDate, weekend.endDate),
                 theme: selectedTheme,
+                userLocation: userLocation || undefined,
             };
             
             // Generate suggestion and image in parallel

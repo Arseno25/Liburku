@@ -38,6 +38,7 @@ export default function Home() {
   const [currentDate, setCurrentDate] = useState('');
   const monthRefs = useRef<(HTMLDivElement | null)[]>([]);
   const [scrollToMonth, setScrollToMonth] = useState<number | null>(null);
+  const [userLocation, setUserLocation] = useState<string | null>(null);
 
   // State for Instant Inspiration feature
   const [isInspirationOpen, setIsInspirationOpen] = useState(false);
@@ -261,7 +262,7 @@ export default function Home() {
           </div>
           <div className="flex items-center gap-6">
             <ClockWidget />
-            <WeatherWidget />
+            <WeatherWidget onLocationUpdate={setUserLocation} />
             <ThemeToggle />
           </div>
       </header>
@@ -369,6 +370,7 @@ export default function Home() {
                 holidays={holidays} 
                 year={selectedYear}
                 onScrollToMonth={handleScrollToMonth} 
+                userLocation={userLocation}
               />
             )}
           </div>
@@ -423,6 +425,7 @@ export default function Home() {
         onOpenChange={setIsInspirationOpen}
         weekend={inspirationData.weekend}
         preselectedTheme={inspirationData.theme}
+        userLocation={userLocation}
       />
 
       {/* Floating Chat Widget */}

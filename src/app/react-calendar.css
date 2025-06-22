@@ -42,7 +42,7 @@
   align-items: center;
   justify-content: center;
   height: 2.25rem; /* h-9 */
-  width: 2.25rem; /* w-9, ensures it's a square */
+  aspect-ratio: 1 / 1; /* Enforce a square shape */
   margin: 0 auto; /* Horizontally center the square tile in its container */
   max-width: 100%;
   padding: 0;

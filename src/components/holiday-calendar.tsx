@@ -111,7 +111,6 @@ export function HolidayCalendar({ activeStartDate, holidays }: HolidayCalendarPr
         tileClassName={tileClassName}
         onClickDay={onClickDay}
         formatShortWeekday={(locale, date) => date.toLocaleDateString('id-ID', { weekday: 'short' })}
-        locale="id-ID"
         className="w-full"
       />
 
